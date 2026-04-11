@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FCE4EC"> <!-- Fundo Rosa para a Nina -->
+
+    <!-- CONTAINER DO ZAP FAKE (Inicia invisível) -->
+    <RelativeLayout
+        android:id="@+id/chat_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#E5DDD5"
+        android:visibility="gone">
+
+        <!-- Cabeçalho da Nina -->
+        <LinearLayout
+            android:id="@+id/header"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:background="#FF80AB"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:padding="8dp"
+            android:elevation="4dp">
+
+            <ImageView
+                android:layout_width="45dp"
+                android:layout_height="45dp"
+                android:src="@mipmap/ic_launcher_round"
+                android:scaleType="centerCrop"
+                android:background="@android:color/white" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:layout_marginStart="12dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Nina ❤️ (Namofiscal)"
+                    android:textColor="@android:color/white"
+                    android:textStyle="bold"
+                    android:textSize="18sp" />
+
+                <TextView
+                    android:id="@+id/status_nina"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="vigiando você..."
+                    android:textColor="#FCE4EC"
+                    android:textSize="12sp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Lista de Mensagens -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_chat"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_above="@+id/input_area"
+            android:layout_below="@+id/header"
+            android:padding="8dp"
+            android:clipToPadding="false" />
+
+        <!-- Área de Digitação -->
+        <LinearLayout
+            android:id="@+id/input_area"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:orientation="horizontal"
+            android:padding="8dp"
+            android:background="@android:color/white"
+            android:elevation="8dp">
+
+            <EditText
+                android:id="@+id/et_mensagem"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="Diga algo pra sua dona..."
+                android:background="@null"
+                android:padding="12dp"
+                android:inputType="textShortMessage"
+                android:textColor="#000000"
+                android:textColorHint="#757575" />
+
+            <ImageButton
+                android:id="@+id/btn_enviar"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@android:drawable/ic_menu_send"
+                android:background="?attr/selectableItemBackgroundBorderless" />
+        </LinearLayout>
+    </RelativeLayout>
+
+    <!-- TELA DE PERMISSÕES (VISUAL ROSA) -->
+    <LinearLayout
+        android:id="@+id/permission_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:padding="20dp"
+        android:visibility="visible">
+
+        <ImageView
+            android:id="@+id/nina_avatar"
+            android:layout_width="150dp"
+            android:layout_height="150dp"
+            android:src="@drawable/ic_launcher_foreground"
+            android:layout_marginTop="50dp"
+            android:contentDescription="Avatar da Nina" />
+
+        <TextView
+            android:id="@+id/nina_texto_inicial"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Pode ir ativando tudo, amor. \nNão me faça esperar! 😤"
+            android:textAlignment="center"
+            android:textSize="18sp"
+            android:textColor="#AD1457"
+            android:layout_margin="20dp"/>
+
+        <Button
+            android:id="@+id/btn_permissao_overlay"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Aparecer sobre outros apps"
+            android:backgroundTint="#F06292"
+            android:layout_margin="10dp"/>
+
+        <Button
+            android:id="@+id/btn_permissao_uso"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Liberar meus olhos (Uso de Apps)"
+            android:backgroundTint="#F06292"
+            android:layout_margin="10dp"/>
+
+        <Button
+            android:id="@+id/btn_abrir_zap"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Abrir nosso Zap ❤️"
+            android:backgroundTint="#4CAF50"
+            android:visibility="gone"
+            android:layout_marginTop="20dp" />
+    </LinearLayout>
+
+</RelativeLayout>
