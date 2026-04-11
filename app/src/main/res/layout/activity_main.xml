@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FCE4EC"> <!-- Fundo Rosa para a Nina -->
+    android:background="#FCE4EC">
 
-    <!-- CONTAINER DO ZAP FAKE (Inicia invisível) -->
+    <!-- CONTAINER DO CHAT (Zap da Nina) -->
     <RelativeLayout
         android:id="@+id/chat_container"
         android:layout_width="match_parent"
@@ -12,23 +13,23 @@
         android:background="#E5DDD5"
         android:visibility="gone">
 
-        <!-- Cabeçalho da Nina -->
         <LinearLayout
             android:id="@+id/header"
             android:layout_width="match_parent"
-            android:layout_height="60dp"
+            android:layout_height="65dp"
             android:background="#FF80AB"
             android:orientation="horizontal"
             android:gravity="center_vertical"
             android:padding="8dp"
-            android:elevation="4dp">
+            android:elevation="8dp">
 
             <ImageView
-                android:layout_width="45dp"
-                android:layout_height="45dp"
+                android:id="@+id/nina_avatar_chat"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
                 android:src="@mipmap/ic_launcher_round"
-                android:scaleType="centerCrop"
-                android:background="@android:color/white" />
+                android:background="@android:color/white"
+                android:padding="2dp" />
 
             <LinearLayout
                 android:layout_width="0dp"
@@ -55,17 +56,16 @@
             </LinearLayout>
         </LinearLayout>
 
-        <!-- Lista de Mensagens -->
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rv_chat"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:layout_below="@id/header"
             android:layout_above="@+id/input_area"
-            android:layout_below="@+id/header"
             android:padding="8dp"
-            android:clipToPadding="false" />
+            android:clipToPadding="false"
+            android:scrollbars="vertical" />
 
-        <!-- Área de Digitação -->
         <LinearLayout
             android:id="@+id/input_area"
             android:layout_width="match_parent"
@@ -74,7 +74,7 @@
             android:orientation="horizontal"
             android:padding="8dp"
             android:background="@android:color/white"
-            android:elevation="8dp">
+            android:elevation="12dp">
 
             <EditText
                 android:id="@+id/et_mensagem"
@@ -82,73 +82,117 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:hint="Diga algo pra sua dona..."
-                android:background="@null"
                 android:padding="12dp"
-                android:inputType="textShortMessage"
-                android:textColor="#000000"
-                android:textColorHint="#757575" />
+                android:background="@null"
+                android:textColor="#000000" />
 
             <ImageButton
                 android:id="@+id/btn_enviar"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
                 android:src="@android:drawable/ic_menu_send"
                 android:background="?attr/selectableItemBackgroundBorderless" />
         </LinearLayout>
     </RelativeLayout>
 
-    <!-- TELA DE PERMISSÕES (VISUAL ROSA) -->
+    <!-- TELA DE PERMISSÕES -->
     <LinearLayout
         android:id="@+id/permission_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:gravity="center_horizontal"
-        android:padding="20dp"
-        android:visibility="visible">
+        android:gravity="center"
+        android:padding="24dp"
+        android:background="#FCE4EC">
 
         <ImageView
             android:id="@+id/nina_avatar"
-            android:layout_width="150dp"
-            android:layout_height="150dp"
-            android:src="@drawable/ic_launcher_foreground"
-            android:layout_marginTop="50dp"
-            android:contentDescription="Avatar da Nina" />
+            android:layout_width="160dp"
+            android:layout_height="160dp"
+            android:src="@drawable/ic_launcher_foreground" />
 
         <TextView
             android:id="@+id/nina_texto_inicial"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Pode ir ativando tudo, amor. \nNão me faça esperar! 😤"
+            android:text="Ativa as permissões, amor! 😤"
             android:textAlignment="center"
-            android:textSize="18sp"
+            android:textSize="20sp"
             android:textColor="#AD1457"
-            android:layout_margin="20dp"/>
+            android:layout_marginTop="20dp" />
 
         <Button
             android:id="@+id/btn_permissao_overlay"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Aparecer sobre outros apps"
-            android:backgroundTint="#F06292"
-            android:layout_margin="10dp"/>
+            android:text="Sobreposição"
+            android:layout_marginTop="20dp" />
 
         <Button
             android:id="@+id/btn_permissao_uso"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Liberar meus olhos (Uso de Apps)"
-            android:backgroundTint="#F06292"
-            android:layout_margin="10dp"/>
+            android:text="Uso de Apps" />
 
         <Button
             android:id="@+id/btn_abrir_zap"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Abrir nosso Zap ❤️"
+            android:text="ENTRAR NO ZAP ❤️"
             android:backgroundTint="#4CAF50"
+            android:textColor="#FFFFFF"
             android:visibility="gone"
-            android:layout_marginTop="20dp" />
+            android:layout_marginTop="30dp" />
     </LinearLayout>
 
-</RelativeLayout>
+    <!-- MENU DEV (OVERLAY SUPERIOR) -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/dev_panel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:visibility="gone"
+        app:cardBackgroundColor="#E6333333"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="150dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🛠 NINA DEV PANEL"
+                android:textColor="#00FF00"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/dev_status_ia"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="IA: --"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/dev_stats"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Afeição: --"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp" />
+
+            <Button
+                android:id="@+id/btn_reset_prefs"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:text="LIMPAR TUDO"
+                android:backgroundTint="#FF5252"
+                android:layout_marginTop="8dp" />
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+</FrameLayout>

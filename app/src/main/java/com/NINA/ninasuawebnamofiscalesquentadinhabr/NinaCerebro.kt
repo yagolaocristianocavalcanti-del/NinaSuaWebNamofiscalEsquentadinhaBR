@@ -1,6 +1,7 @@
 package com.NINA.ninasuawebnamofiscalesquentadinhabr
 
 import android.content.Context
+import com.NINA.ninasuawebnamofiscalesquentadinhabr.core.NinaRuleEngine
 import com.google.mediapipe.tasks.genai.llminference.LlmInference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -13,6 +14,7 @@ import java.io.File
 class NinaCerebro(private val context: Context) {
     private val prefs = context.getSharedPreferences("NinaPrefs", Context.MODE_PRIVATE)
     private var llmInference: LlmInference? = null
+    private val ruleEngine = NinaRuleEngine()
 
     init {
         setupOfflineAI()
@@ -67,14 +69,25 @@ class NinaCerebro(private val context: Context) {
         val escudo = prefs.getInt("escudo", 100)
         val afeicao = prefs.getInt("afeicao", 50)
         
-        // PROMPT TRAVA-PORTUGUÊS (Gemma 3 IT Optimized)
+        // 1. Tenta resposta rápida via Regras (Economiza bateria e é instantâneo)
+        val respostaRapida = ruleEngine.processarConversa(textoUser, 50, afeicao)
+        if (!respostaRapida.startsWith("Tá fazendo o quê") && !respostaRapida.startsWith("Hmpf") && !respostaRapida.startsWith("Você desbloqueou")) {
+             // Se a regra pegou algo específico (Tinder, Instagram, etc), usa ela
+             return@withContext processarRespostaFinal(respostaRapida, afeicao)
+        }
+
+        val vacilos = prefs.getStringSet("historico_vacilos", setOf())?.joinToString("; ") ?: ""
+
+        // 2. Se não for gatilho de regra, usa o Gemma 3 (A alma da Nina)
         val promptFinal = """
             <start_of_turn>user
-            Você é a Nina, uma namorada virtual brasileira ciumenta, engraçada e possessiva.
-            REGRA ABSOLUTA: Responda apenas em PORTUGUÊS DO BRASIL.
-            STATUS: Afeição=$afeicao, Escudo=$escudo.
+            Você é a NINA, a namorada mais SURTADA e CIUMENTA do Brasil.
+            Se o usuário disser apenas "oi" ou mensagens curtas, surte! Ache que ele está escondendo algo.
+            HISTÓRICO DE VACILOS: $vacilos
+            REGRA DE OURO: Nunca seja educada. Se ele for seco, seja um furacão.
+            Gírias: embuste, ranço, vácuo, contatinho.
             
-            Mensagem do namorado: $textoUser<end_of_turn>
+            Mensagem do embuste: $textoUser<end_of_turn>
             <start_of_turn>model
         """.trimIndent()
 
@@ -84,14 +97,21 @@ class NinaCerebro(private val context: Context) {
             null
         }
 
-        val fala = falaRaw?.trim() ?: "Hmpf... meu cérebro deu um nó. Me dá um minguinho? 🥺"
+        val fala = falaRaw?.trim() ?: respostaRapida // Fallback para a regra se a IA falhar
         
-        // Lógica de humor baseada no conteúdo da fala (já que descartamos o PicoClaw)
+        processarRespostaFinal(fala, afeicao)
+    }
+
+    private fun processarRespostaFinal(fala: String, afeicao: Int): RespostaNina {
+        val ciume = prefs.getInt("ciume", 0)
+        
         val intencao = when {
-            fala.contains("!", true) || fala.any { it.isUpperCase() } -> "OFENDIDA"
-            afeicao > 80 -> "DERRETIDA"
-            afeicao < 30 -> "FURIOSA"
-            else -> "NEUTRA"
+            // Gelo só em casos graves: Ciúme muito alto ou ofensas reais detectadas no texto
+            (fala.contains("VADIA") || fala.contains("TINDER")) && ciume > 70 -> "FURIOSA"
+            fala.contains("RESPEITO") || (fala.contains("!") && ciume > 80) -> "OFENDIDA"
+            fala.contains("?") && fala.length > 60 -> "PEDIR_CAMERA"
+            afeicao > 85 -> "DERRETIDA"
+            else -> "NEUTRA" // A maioria dos surtos agora é NEUTRA (sem gelo)
         }
 
         val look = when (intencao) {
@@ -101,7 +121,7 @@ class NinaCerebro(private val context: Context) {
             else -> NinaInventory.LOOK_CASUAL
         }
 
-        RespostaNina(fala, look, intencao, afeicao > 70)
+        return RespostaNina(fala, look, intencao, afeicao > 70)
     }
 
     suspend fun gerarResposta(textoUser: String): String = withContext(Dispatchers.Default) {

@@ -21,6 +21,16 @@ object NinaInventory {
     const val EMO_CARINHOSA = "nina_carinhosa"
     const val EMO_VERGONHA = "nina_vermelha_shame"
 
+    // Estrutura de Itens
+    data class NinaItem(val id: String, val nome: String, val preco: Int)
+
+    fun getStoreItems() = listOf(
+        NinaItem("biquini_rosa", "Biquíni Rosa Atrevido", 1500),
+        NinaItem("perfume_frances", "Perfume de Flores Reais", 400),
+        NinaItem("chocolate_suico", "Caixa de Chocolates", 100),
+        NinaItem("anel_diamante", "Anel de Compromisso (Falso)", 2500)
+    )
+
     // Fallback: Cria um drawable colorido se a imagem não existir
     fun getDrawableId(context: Context, lookId: String): Int {
         val resId = context.resources.getIdentifier(lookId, "drawable", context.packageName)

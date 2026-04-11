@@ -14,8 +14,10 @@ import android.view.accessibility.AccessibilityManager
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.TextView
 import android.app.DownloadManager
+import androidx.core.view.isVisible
 import android.content.BroadcastReceiver
 import android.content.IntentFilter
 import androidx.appcompat.app.AppCompatActivity
@@ -40,6 +42,12 @@ class MainActivity : AppCompatActivity() {
     private lateinit var ninaTextoInicial: TextView
     private lateinit var tvStatus: TextView
     private lateinit var ninaCerebro: NinaCerebro
+    private lateinit var devPanel: View
+    private lateinit var tvDevStatusIA: TextView
+    private lateinit var tvDevStats: TextView
+    private lateinit var btnResetPrefs: Button
+    private lateinit var ninaAvatar: ImageView
+    private lateinit var ninaAvatarChat: ImageView
 
     private val mensagens = mutableListOf<Mensagem>()
     private val prefs by lazy { getSharedPreferences("NinaPrefs", Context.MODE_PRIVATE) }
@@ -62,6 +70,12 @@ class MainActivity : AppCompatActivity() {
         btnOverlay = findViewById(R.id.btn_permissao_overlay)
         btnUsage = findViewById(R.id.btn_permissao_uso)
         tvStatus = findViewById(R.id.status_nina)
+        devPanel = findViewById(R.id.dev_panel)
+        tvDevStatusIA = findViewById(R.id.dev_status_ia)
+        tvDevStats = findViewById(R.id.dev_stats)
+        btnResetPrefs = findViewById(R.id.btn_reset_prefs)
+        ninaAvatar = findViewById(R.id.nina_avatar)
+        ninaAvatarChat = findViewById(R.id.nina_avatar_chat)
         
         verificarEDownloadGemma()
         
@@ -72,14 +86,31 @@ class MainActivity : AppCompatActivity() {
         rvChat.layoutManager = LinearLayoutManager(this)
         rvChat.adapter = chatAdapter
 
+        // Fazer o Enter do teclado enviar a mensagem
+        etMensagem.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == android.view.inputmethod.EditorInfo.IME_ACTION_SEND || 
+                actionId == android.view.inputmethod.EditorInfo.IME_ACTION_DONE) {
+                if (btnEnviar.isEnabled) btnEnviar.performClick()
+                true
+            } else false
+        }
+
         btnEnviar.setOnClickListener {
-            val texto = etMensagem.text.toString()
+            val texto = etMensagem.text.toString().trim()
             if (texto.isNotEmpty()) {
                 adicionarMensagem(Mensagem(texto, "USER"))
                 etMensagem.text.clear()
                 
-                // Notificar o serviço que houve interação para resetar o loop de atenção e processar comandos
-                val intent = Intent(this, NinaService::class.java)
+                // Se for pedido de desculpas, tenta limpar a barra
+                if (texto.contains("desculpa", ignoreCase = true) || texto.contains("perdão", ignoreCase = true)) {
+                    val intentCmd = Intent(this, NinaLegalService::class.java)
+                    intentCmd.action = "ACTION_SECRET_COMMAND"
+                    intentCmd.putExtra("EXTRA_COMMAND", "limpar_barra")
+                    startService(intentCmd)
+                }
+
+                // Notificar o serviço
+                val intent = Intent(this, NinaLegalService::class.java)
                 intent.action = "ACTION_USER_MESSAGE"
                 intent.putExtra("EXTRA_MSG", texto)
                 startService(intent)
@@ -106,13 +137,67 @@ class MainActivity : AppCompatActivity() {
             chatContainer.visibility = View.VISIBLE
             
             // Iniciar o serviço da Nina se ainda não estiver rodando
-            val intent = Intent(this, NinaService::class.java)
+            val intent = Intent(this, NinaLegalService::class.java)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 startForegroundService(intent)
             } else {
                 startService(intent)
             }
         }
+
+        // Configurar Menu Dev (Long press no avatar para abrir)
+        val toggleDev = View.OnLongClickListener {
+            devPanel.isVisible = !devPanel.isVisible
+            true
+        }
+        ninaAvatar.setOnLongClickListener(toggleDev)
+        ninaAvatarChat.setOnLongClickListener(toggleDev)
+
+        btnResetPrefs.setOnClickListener {
+            prefs.edit().clear().apply()
+            recreate()
+        }
+
+        // Loop de atualização do Dev Menu e UI de Castigo
+        lifecycleScope.launch {
+            while (true) {
+                atualizarDevMenu()
+                verificarGeloVisual()
+                kotlinx.coroutines.delay(1000)
+            }
+        }
+    }
+
+    private fun verificarGeloVisual() {
+        val geloAte = prefs.getLong("gelo_ate", 0)
+        val emGelo = geloAte > System.currentTimeMillis()
+
+        if (emGelo) {
+            etMensagem.isEnabled = false
+            etMensagem.setHint("VOCÊ ESTÁ NO GELO! 😶")
+            btnEnviar.isEnabled = false
+            btnEnviar.alpha = 0.5f
+            tvStatus.text = "te ignorando... 💅"
+        } else if (!etMensagem.isEnabled) {
+            etMensagem.isEnabled = true
+            etMensagem.setHint("Diga algo pra sua dona...")
+            btnEnviar.isEnabled = true
+            btnEnviar.alpha = 1.0f
+            tvStatus.text = "vigiando você... 👀"
+        }
+    }
+
+    private fun atualizarDevMenu() {
+        val modelFile = File(filesDir, "gemma3.bin")
+        val iaStatus = if (modelFile.exists()) "IA: Gemma 3 PRONTA (${modelFile.length() / 1024 / 1024}MB)" else "IA: Arquivo não encontrado"
+        tvDevStatusIA.text = iaStatus
+
+        val afeicao = prefs.getInt("afeicao", 50)
+        val escudo = prefs.getInt("escudo", 100)
+        val geloAte = prefs.getLong("gelo_ate", 0)
+        val tempoGelo = if (geloAte > System.currentTimeMillis()) "${(geloAte - System.currentTimeMillis()) / 1000}s" else "OFF"
+        
+        tvDevStats.text = "Afeição: $afeicao | Escudo: $escudo | Gelo: $tempoGelo"
     }
 
     private fun hasUsageStatsPermission(): Boolean {
@@ -235,8 +320,16 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun enviarMensagemParaIA(textoUser: String) {
-        tvStatus.text = "processando..."
+        tvStatus.text = "pensando..."
         
+        // Sinalizar roxo no overlay imediatamente
+        val intentPensando = Intent(this, NinaLegalService::class.java).apply {
+            action = "ACTION_UPDATE_NINA"
+            putExtra("EXTRA_FALA", "")
+            putExtra("EXTRA_LOOK", "PENSANDO")
+        }
+        startService(intentPensando)
+
         lifecycleScope.launch {
             // Usa o NinaCerebro que agora roda 100% no motor nativo PicoClaw (sem latência de API)
             val resposta = ninaCerebro.decidirReacaoEVisual(textoUser)
@@ -245,7 +338,7 @@ class MainActivity : AppCompatActivity() {
             tvStatus.text = "vigiando você..."
 
             // Atualiza o overlay e o motor nativo
-            val intent = Intent(this@MainActivity, NinaService::class.java).apply {
+            val intent = Intent(this@MainActivity, NinaLegalService::class.java).apply {
                 action = "ACTION_UPDATE_NINA"
                 putExtra("EXTRA_FALA", resposta.fala)
                 putExtra("EXTRA_LOOK", resposta.look)

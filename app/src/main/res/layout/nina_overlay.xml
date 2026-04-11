@@ -5,19 +5,36 @@
     android:orientation="vertical"
     android:background="@android:color/transparent">
 
-    <ImageView
-        android:id="@+id/nina_avatar"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-        android:src="@drawable/ic_launcher_foreground" />
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:id="@+id/img_nina_overlay"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:src="@drawable/ic_launcher_foreground" />
+
+        <!-- Pontinho Verde Flutuante (Status de Monitoramento) -->
+        <View
+            android:id="@+id/nina_status_led"
+            android:layout_width="12dp"
+            android:layout_height="12dp"
+            android:layout_alignEnd="@id/img_nina_overlay"
+            android:layout_alignTop="@id/img_nina_overlay"
+            android:layout_marginEnd="5dp"
+            android:layout_marginTop="5dp"
+            android:background="@drawable/led_verde_vivo" />
+    </RelativeLayout>
 
     <TextView
-        android:id="@+id/nina_balao"
+        android:id="@+id/tv_nina_bubble"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="@android:color/white"
+        android:background="@android:drawable/toast_frame"
         android:padding="8dp"
         android:text="Tô de olho..."
         android:textColor="@android:color/black"
-        android:visibility="gone" />
+        android:visibility="gone"
+        android:layout_marginTop="4dp" />
 </LinearLayout>

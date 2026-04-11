@@ -5,5 +5,6 @@ enum class IntencaoNina {
     FURIOSA,
     DERRETIDA,
     NEUTRA,
-    PEDIR_CAMERA
+    PEDIR_CAMERA,
+    PENSANDO
 }

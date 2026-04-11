@@ -1,15 +1,16 @@
 plugins {
     alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
 }
 
 android {
     namespace = "com.NINA.ninasuawebnamofiscalesquentadinhabr"
-    compileSdk = 36 // Atualizado para 36 conforme exigido pelas dependências do AndroidX
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.NINA.ninasuawebnamofiscalesquentadinhabr"
-        minSdk = 26 // Aumentado para 26 para suportar Adaptive Icons e melhor performance de IA
-        targetSdk = 36 // Sincronizado com o compileSdk
+        minSdk = 26
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
 
@@ -24,6 +25,20 @@ android {
                 "proguard-rules.pro"
             )
         }
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = "17"
+    }
+
+    buildFeatures {
+        viewBinding = true
+        aidl = true
     }
 
     packaging {
@@ -50,6 +65,13 @@ dependencies {
     // ML Kit
     implementation("com.google.mlkit:face-detection:16.1.7")
     implementation("com.google.mlkit:image-labeling:17.0.9")
+
+    // ✅ Gemini (Generative AI)
+    implementation("com.google.ai.client.generativeai:generativeai:0.5.0")
+    
+    // ✅ TensorFlow Lite
+    implementation("org.tensorflow:tensorflow-lite:2.14.0")
+    implementation("org.tensorflow:tensorflow-lite-support:0.4.4")
 
     // MediaPipe GenAI - O CORAÇÃO DA NINA (Gemma 3 Offline)
     // Versão 0.10.14 é a recomendada para Gemma 270M
