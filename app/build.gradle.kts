@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "com.NINA.ninasuawebnamofiscalesquentadinhabr"
+    namespace = "com.nina.namofiscal"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.NINA.ninasuawebnamofiscalesquentadinhabr"
+        applicationId = "com.nina.namofiscal"
         minSdk = 26
         targetSdk = 35
         versionCode = 1
@@ -76,6 +76,9 @@ dependencies {
     // MediaPipe GenAI - O CORAÇÃO DA NINA (Gemma 3 Offline)
     // Versão 0.10.14 é a recomendada para Gemma 270M
     implementation("com.google.mediapipe:tasks-genai:0.10.14")
+
+    // Localização para a Nina vigiar onde você anda
+    implementation("com.google.android.gms:play-services-location:21.3.0")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
