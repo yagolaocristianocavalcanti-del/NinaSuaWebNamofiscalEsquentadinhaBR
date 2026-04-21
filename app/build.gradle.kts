@@ -45,10 +45,6 @@ android {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
-        jniLibs {
-            // Importante para MediaPipe GenAI: garantir que as libs nativas sejam carregadas
-            useLegacyPackaging = true
-        }
     }
 }
 
@@ -69,13 +65,9 @@ dependencies {
     // ✅ Gemini (Generative AI)
     implementation("com.google.ai.client.generativeai:generativeai:0.5.0")
     
-    // ✅ TensorFlow Lite
-    implementation("org.tensorflow:tensorflow-lite:2.14.0")
-    implementation("org.tensorflow:tensorflow-lite-support:0.4.4")
-
     // MediaPipe GenAI - O CORAÇÃO DA NINA (Gemma 3 Offline)
-    // Versão 0.10.14 é a recomendada para Gemma 270M
-    implementation("com.google.mediapipe:tasks-genai:0.10.14")
+    // Mantemos recente para incluir prebuilts nativos compatíveis com Android 15+ / 16 KB page size.
+    implementation("com.google.mediapipe:tasks-genai:0.10.33")
 
     // Localização para a Nina vigiar onde você anda
     implementation("com.google.android.gms:play-services-location:21.3.0")

@@ -72,7 +72,6 @@ class NinaIA(private val context: Context) {
             val options = LlmInference.LlmInferenceOptions.builder()
                 .setModelPath(finalPath)
                 .setMaxTokens(1024)
-                .setTemperature(0.75f)
                 .build()
             
             llmInference = LlmInference.createFromOptions(context, options)
