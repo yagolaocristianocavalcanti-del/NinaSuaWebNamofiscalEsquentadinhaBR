@@ -108,6 +108,11 @@ class NinaLegalService : Service() {
         publicarEstado("", NinaInventory.EMO_CARINHOSA)
     }
 
+    fun diminuirCarinho(pontos: Int) {
+        afeicao = (afeicao - pontos).coerceIn(0, 100)
+        publicarEstado("", NinaInventory.EMO_IRRITADA)
+    }
+
     fun aplicarGelo(tempoMinutos: Int) {
         if (isModoTeste()) return
         emGelo = true
@@ -168,7 +173,13 @@ class NinaLegalService : Service() {
 
     private fun atualizarOverlay(texto: String, humor: String) {
         mostrarOverlaySePermitido()
-        overlayImage?.setImageResource(NinaInventory.getResourceForHumor(humor))
+        val saidaAtual = NinaSchedule.getActiveOuting(this)
+        val visualStatus = when (saidaAtual?.companion) {
+            NinaOutingCompanion.AMIGAS -> NinaVisualStatuses.get(NinaStatusKey.SAINDO_COM_AMIGAS)
+            NinaOutingCompanion.AMIGO -> NinaVisualStatuses.get(NinaStatusKey.SAINDO_COM_AMIGO)
+            else -> NinaVisualStatuses.fromHumor(humor, texto)
+        }
+        overlayImage?.setImageResource(visualStatus.imageRes)
         overlayBubble?.apply {
             if (texto.isBlank()) {
                 visibility = View.GONE

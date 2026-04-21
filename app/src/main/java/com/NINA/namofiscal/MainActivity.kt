@@ -99,6 +99,7 @@ class MainActivity : AppCompatActivity() {
         // Abrir o WhatsApp da Nina (dentro da Home dela)
         binding.btnAbrirZap.setOnClickListener {
             binding.ninaHomeContainer.visibility = View.GONE
+            binding.agendaContainer.visibility = View.GONE
             binding.chatContainer.visibility = View.VISIBLE
         }
 
@@ -134,6 +135,14 @@ class MainActivity : AppCompatActivity() {
             mostrarMiniGameEmBreve()
         }
 
+        binding.btnAbrirAgenda.setOnClickListener {
+            mostrarAgendaDaNina()
+        }
+
+        binding.btnFecharAgenda.setOnClickListener {
+            mostrarHomeNina()
+        }
+
         // Botão de Configurações (Engrenagem no Chat)
         binding.btnSettings.setOnClickListener {
             startActivity(Intent(this, SettingsActivity::class.java))
@@ -160,28 +169,51 @@ class MainActivity : AppCompatActivity() {
         ).show()
     }
 
-    private fun atualizarStatusNina(texto: String, humor: String?, afeicao: Int, ciume: Int) {
-        val humorAtual = humor ?: NinaInventory.EMO_NEUTRA
-        binding.imgNinaHome.setImageResource(NinaInventory.getResourceForHumor(humorAtual))
+    private fun mostrarAgendaDaNina() {
+        atualizarAgendaDaNina()
+        binding.permissionContainer.visibility = View.GONE
+        binding.ninaHomeContainer.visibility = View.GONE
+        binding.chatContainer.visibility = View.GONE
+        binding.agendaContainer.visibility = View.VISIBLE
+    }
 
-        val statusBase = when (humorAtual) {
-            NinaInventory.EMO_DORMINDO, NinaInventory.LOOK_PIJAMA -> "Dormindo"
-            NinaInventory.EMO_CORRENDO, NinaInventory.LOOK_SPORT -> "Correndo"
-            NinaInventory.EMO_TRABALHO, NinaInventory.LOOK_TRABALHO -> "Trabalhando"
-            NinaInventory.EMO_PENSANDO -> "Pensando"
-            NinaInventory.EMO_BRAVA, NinaInventory.EMO_IRRITADA, NinaInventory.EMO_EXIGENTE -> "Irritada"
-            NinaInventory.EMO_FURIOSA -> "Furiosa"
-            NinaInventory.EMO_CARINHOSA, NinaInventory.EMO_DERRETIDA -> "Carinhosa"
-            else -> "Em casa"
+    private fun atualizarAgendaDaNina() {
+        val dias = NinaSchedule.getPublicWeek(applicationContext)
+        val views = listOf(
+            binding.tvAgendaDom,
+            binding.tvAgendaSeg,
+            binding.tvAgendaTer,
+            binding.tvAgendaQua,
+            binding.tvAgendaQui,
+            binding.tvAgendaSex,
+            binding.tvAgendaSab
+        )
+        val folgaExtra = dias.firstOrNull { it.summary.contains("Folga extra", ignoreCase = true) }?.title ?: "?"
+
+        binding.tvAgendaSubtitle.text = "Semana atual | folga extra: $folgaExtra"
+        views.zip(dias).forEach { (view, day) ->
+            val prefix = if (day.isToday) "HOJE | " else ""
+            view.text = "$prefix${day.title}\n${day.summary}"
         }
+    }
+
+    private fun atualizarStatusNina(texto: String, humor: String?, afeicao: Int, ciume: Int) {
+        val saidaAtual = NinaSchedule.getActiveOuting(applicationContext)
+        val visualStatus = when (saidaAtual?.companion) {
+            NinaOutingCompanion.AMIGAS -> NinaVisualStatuses.get(NinaStatusKey.SAINDO_COM_AMIGAS)
+            NinaOutingCompanion.AMIGO -> NinaVisualStatuses.get(NinaStatusKey.SAINDO_COM_AMIGO)
+            else -> NinaVisualStatuses.fromHumor(humor, texto)
+        }
+        binding.imgNinaHome.setImageResource(visualStatus.imageRes)
 
         val detalhe = when {
             texto.contains("reunião", ignoreCase = true) -> "em reunião"
+            saidaAtual != null && texto.isBlank() -> "fora das ${saidaAtual.startHour}h às ${saidaAtual.endHour}h | afeição $afeicao | ciúme $ciume"
             texto.isNotBlank() -> texto.take(42)
-            else -> "afeição $afeicao | ciúme $ciume"
+            else -> "${visualStatus.detail} | afeição $afeicao | ciúme $ciume"
         }
 
-        binding.tvNinaStatus.text = "Nina: $statusBase - $detalhe"
+        binding.tvNinaStatus.text = "Nina: ${visualStatus.label} - $detalhe"
     }
 
     private fun setupChat() {
@@ -191,7 +223,12 @@ class MainActivity : AppCompatActivity() {
         }
         binding.rvChat.adapter = chatAdapter
 
-        adicionarMensagemNina("Oi, amor. Eu ja tava aqui te esperando... abre o jogo: o que voce veio fazer no celular? 😤")
+        val onboardingMessages = NinaOnboarding(applicationContext).startIfNeeded()
+        if (onboardingMessages.isEmpty()) {
+            adicionarMensagemNina("Oi, amor. Eu ja tava aqui te esperando... abre o jogo: o que voce veio fazer no celular? 😤")
+        } else {
+            onboardingMessages.forEach { adicionarMensagemNina(it) }
+        }
 
         binding.btnEnviar.setOnClickListener {
             enviarMensagemParaNina()
@@ -224,13 +261,18 @@ class MainActivity : AppCompatActivity() {
             )
 
             val resposta = withContext(Dispatchers.IO) {
-                val indisponivel = NinaLegalService.getInstance()?.let { service ->
-                    NinaCmd(service, applicationContext).mensagemIndisponibilidadeAtual()
-                }
+                val onboarding = NinaOnboarding(applicationContext)
+                if (!onboarding.isDone()) {
+                    onboarding.handleUserMessage(texto)
+                } else {
+                    val indisponivel = NinaLegalService.getInstance()?.let { service ->
+                        NinaCmd(service, applicationContext).mensagemIndisponibilidadeAtual()
+                    }
 
-                indisponivel ?: run {
-                    val ia = ninaIA ?: NinaIA(applicationContext).also { ninaIA = it }
-                    ia.responder(texto)
+                    indisponivel ?: run {
+                        val ia = ninaIA ?: NinaIA(applicationContext).also { ninaIA = it }
+                        ia.responder(texto, NinaSchedule.getMessageContext(applicationContext))
+                    }
                 }
             }
 
@@ -272,6 +314,8 @@ class MainActivity : AppCompatActivity() {
     private fun mostrarHomeNina() {
         binding.permissionContainer.visibility = View.GONE
         binding.ninaHomeContainer.visibility = View.VISIBLE
+        binding.chatContainer.visibility = View.GONE
+        binding.agendaContainer.visibility = View.GONE
     }
 
     private fun hasUsageStatsPermission(): Boolean {

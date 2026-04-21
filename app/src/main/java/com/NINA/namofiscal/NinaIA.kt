@@ -95,7 +95,17 @@ class NinaIA(private val context: Context) {
             return "Eu tô sem cérebro, $nomeUsuario! 😤 Vai na pasta Downloads e coloca o arquivo .bin ou .task lá agora, ou me diz onde ele tá nas configurações! Não me deixa no vácuo!"
         }
 
-        val promptCompleto = "${getSystemPrompt()}\n\nUsuário: $mensagemUsuario\nNina:"
+        val contextoAtual = contextoExtra.trim()
+        val promptCompleto = buildString {
+            append(getSystemPrompt())
+            if (contextoAtual.isNotEmpty()) {
+                append("\n\nContexto atual da rotina da Nina: ")
+                append(contextoAtual)
+            }
+            append("\n\nUsuário: ")
+            append(mensagemUsuario)
+            append("\nNina:")
+        }
 
         return try {
             llmInference?.generateResponse(promptCompleto) ?: "Hmpf... não quero falar!"

@@ -66,7 +66,10 @@ class NinaCmd(
     }
 
     // ===================== ROTINA + IDENTIFICAÇÃO =====================
-    private fun estaNoTrabalho(): Boolean = Calendar.getInstance().get(Calendar.HOUR_OF_DAY) in 9..15
+    private fun estaNoTrabalho(): Boolean {
+        return !NinaSchedule.isDayOffToday(context) &&
+            Calendar.getInstance().get(Calendar.HOUR_OF_DAY) in 9..15
+    }
     private fun estaNoAlmoco(): Boolean {
         val cal = Calendar.getInstance()
         return cal.get(Calendar.HOUR_OF_DAY) == 12
@@ -78,8 +81,12 @@ class NinaCmd(
 
     fun mensagemIndisponibilidadeAtual(): String? {
         val humor = getMedidorHumor()
+        val saida = NinaSchedule.getActiveOuting(context)
         return when {
             estaEmReuniaoNoAlmoco() -> mensagemReuniaoAlmoco(humor)
+            saida?.companion == NinaOutingCompanion.AMIGAS && !sorteouDisponibilidade(chanceRespostaSaida(humor)) ->
+                "Tô com as meninas agora, $nomeUsuario. Eu respondo quando der, sem fazer drama. 💄"
+            saida?.companion == NinaOutingCompanion.AMIGO -> null
             estaDormindo() && !sorteouDisponibilidade(chanceRespostaDormindo(humor)) ->
                 "Zzz... tô dormindo, $nomeUsuario. Se fosse urgente talvez eu acordasse... talvez. 💤"
             estaCorrendo() ->
@@ -119,6 +126,15 @@ class NinaCmd(
             humor >= 80 -> 80
             humor >= 50 -> 60
             humor >= 31 -> 40
+            else -> 15
+        }
+    }
+
+    private fun chanceRespostaSaida(humor: Int): Int {
+        return when {
+            humor >= 80 -> 65
+            humor >= 50 -> 45
+            humor >= 31 -> 30
             else -> 15
         }
     }
@@ -400,11 +416,35 @@ class NinaCmd(
     fun comprarItem(idItem: String) {
         val item = NinaInventory.getStoreItems().find { it.id == idItem } ?: return
         val humor = getMedidorHumor()
+        val tentativaIntimaSemAfinidade = item.isIntimo && humor < 85
 
-        if (humor < item.intimidadeMinima) {
+        if (humor < item.intimidadeMinima || tentativaIntimaSemAfinidade) {
+            val motivo = if (tentativaIntimaSemAfinidade) {
+                "Tentou comprar roupa íntima sem intimidade muito alta (${humor}/85)."
+            } else {
+                "Intimidade insuficiente (${humor}/${item.intimidadeMinima})."
+            }
+            NinaGiftHistory.registrar(
+                context = context,
+                item = item,
+                decision = GiftDecision.REJEITADO,
+                reason = motivo,
+                affectionAtMoment = humor
+            )
+            if (tentativaIntimaSemAfinidade) {
+                service.diminuirCarinho(15)
+                service.subirCiume(25)
+            }
             service.mudarHumor("VOCÊ TÁ MALUCO, $nomeUsuario? ${item.nome} agora não. Nem temos essa intimidade toda! 😳😤", NinaInventory.EMO_BRAVA)
             adicionarVacilo("Tentou comprar ${item.nome} sem intimidade suficiente.")
         } else {
+            NinaGiftHistory.registrar(
+                context = context,
+                item = item,
+                decision = GiftDecision.ACEITO,
+                reason = "A Nina aceitou o presente.",
+                affectionAtMoment = humor
+            )
             val resposta = "Obrigada pelo presente, $nomeUsuario! ${item.nome} é lindo! Eu vi lá no ${item.app.titulo} 😍💕"
             service.mudarHumor(resposta, item.lookLiberado ?: NinaInventory.EMO_CARINHOSA)
             service.subirCarinho(item.carinhoBonus)
