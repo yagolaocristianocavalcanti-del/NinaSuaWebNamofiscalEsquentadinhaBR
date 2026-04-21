@@ -2,9 +2,13 @@ package com.nina.namofiscal
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.location.Address
 import android.location.Geocoder
 import android.location.Location
+import android.os.Build
 import com.google.android.gms.location.*
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.TimeUnit
 import java.util.*
 
 class NinaLocationTracker(private val context: Context, private val ninaCmd: NinaCmd) {
@@ -52,7 +56,7 @@ class NinaLocationTracker(private val context: Context, private val ninaCmd: Nin
 
     private fun obterNomeDoLugar(location: Location): String {
         return try {
-            val addresses = geocoder.getFromLocation(location.latitude, location.longitude, 1)
+            val addresses = obterEnderecos(location)
             if (!addresses.isNullOrEmpty()) {
                 val address = addresses[0]
                 val featureName = address.featureName ?: ""
@@ -63,6 +67,30 @@ class NinaLocationTracker(private val context: Context, private val ninaCmd: Nin
             }
         } catch (e: Exception) {
             "algum lugar que não quer me dizer"
+        }
+    }
+
+    private fun obterEnderecos(location: Location): List<Address>? {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            val future = CompletableFuture<List<Address>?>()
+            geocoder.getFromLocation(
+                location.latitude,
+                location.longitude,
+                1,
+                object : Geocoder.GeocodeListener {
+                    override fun onGeocode(addresses: MutableList<Address>) {
+                        future.complete(addresses)
+                    }
+
+                    override fun onError(errorMessage: String?) {
+                        future.complete(null)
+                    }
+                }
+            )
+            future.get(2, TimeUnit.SECONDS)
+        } else {
+            @Suppress("DEPRECATION")
+            geocoder.getFromLocation(location.latitude, location.longitude, 1)
         }
     }
 

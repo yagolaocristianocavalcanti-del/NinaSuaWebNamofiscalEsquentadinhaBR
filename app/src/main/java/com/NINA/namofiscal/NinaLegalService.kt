@@ -7,9 +7,17 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.graphics.PixelFormat
 import android.os.Build
 import android.os.IBinder
+import android.provider.Settings
 import android.util.Log
+import android.view.Gravity
+import android.view.LayoutInflater
+import android.view.View
+import android.view.WindowManager
+import android.widget.ImageView
+import android.widget.TextView
 import androidx.core.app.NotificationCompat
 
 class NinaLegalService : Service() {
@@ -19,8 +27,18 @@ class NinaLegalService : Service() {
     private var emGelo: Boolean = false
     private var modoVigilanciaTelegram: Boolean = false
     private var ultimaInteracaoNina: Long = 0
+    private var windowManager: WindowManager? = null
+    private var overlayView: View? = null
+    private var overlayImage: ImageView? = null
+    private var overlayBubble: TextView? = null
 
     companion object {
+        const val ACTION_NINA_STATE = "com.nina.namofiscal.ACTION_NINA_STATE"
+        const val EXTRA_TEXTO = "extra_texto"
+        const val EXTRA_HUMOR = "extra_humor"
+        const val EXTRA_AFEICAO = "extra_afeicao"
+        const val EXTRA_CIUME = "extra_ciume"
+
         private const val CHANNEL_ID = "NinaForegroundServiceChannel"
         private const val NOTIFICATION_ID = 1
         private var instance: NinaLegalService? = null
@@ -34,6 +52,7 @@ class NinaLegalService : Service() {
         instance = this
         createNotificationChannel()
         startForeground(NOTIFICATION_ID, createNotification())
+        mostrarOverlaySePermitido()
         Log.d("NINA_SERVICE", "Nina está viva e vigiando! 💅🚩")
     }
 
@@ -75,14 +94,19 @@ class NinaLegalService : Service() {
 
     fun mudarHumor(texto: String, humor: String) {
         Log.d("NINA_LIVES", "Nina diz ($humor): $texto")
-        // Futura implementação de Overlay/TTS
+        atualizarOverlay(texto, humor)
+        publicarEstado(texto, humor)
     }
 
     fun subirCiume(pontos: Int) { 
-        if (!isModoTeste()) ciume = (ciume + pontos).coerceIn(0, 100) 
+        if (!isModoTeste()) ciume = (ciume + pontos).coerceIn(0, 100)
+        publicarEstado("", NinaInventory.EMO_IRRITADA)
     }
 
-    fun subirCarinho(pontos: Int) { afeicao = (afeicao + pontos).coerceIn(0, 100) }
+    fun subirCarinho(pontos: Int) {
+        afeicao = (afeicao + pontos).coerceIn(0, 100)
+        publicarEstado("", NinaInventory.EMO_CARINHOSA)
+    }
 
     fun aplicarGelo(tempoMinutos: Int) {
         if (isModoTeste()) return
@@ -103,7 +127,89 @@ class NinaLegalService : Service() {
     fun desativarModoVigilancia() { modoVigilanciaTelegram = false }
     fun estaNoModoVigilanciaTelegram(): Boolean = modoVigilanciaTelegram
 
+    private fun mostrarOverlaySePermitido() {
+        if (!Settings.canDrawOverlays(this) || overlayView != null) return
+
+        windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
+        val inflater = getSystemService(LAYOUT_INFLATER_SERVICE) as LayoutInflater
+        val view = inflater.inflate(R.layout.nina_overlay, null)
+        overlayImage = view.findViewById(R.id.img_nina_overlay)
+        overlayBubble = view.findViewById(R.id.tv_nina_bubble)
+
+        val overlayType = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+        } else {
+            @Suppress("DEPRECATION")
+            WindowManager.LayoutParams.TYPE_PHONE
+        }
+
+        val params = WindowManager.LayoutParams(
+            WindowManager.LayoutParams.WRAP_CONTENT,
+            WindowManager.LayoutParams.WRAP_CONTENT,
+            overlayType,
+            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+                WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
+                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
+            PixelFormat.TRANSLUCENT
+        ).apply {
+            gravity = Gravity.TOP or Gravity.END
+            x = 18
+            y = 120
+        }
+
+        try {
+            windowManager?.addView(view, params)
+            overlayView = view
+            atualizarOverlay("", NinaInventory.EMO_NEUTRA)
+        } catch (e: Exception) {
+            Log.e("NINA_OVERLAY", "Falha ao abrir overlay: ${e.message}")
+        }
+    }
+
+    private fun atualizarOverlay(texto: String, humor: String) {
+        mostrarOverlaySePermitido()
+        overlayImage?.setImageResource(NinaInventory.getResourceForHumor(humor))
+        overlayBubble?.apply {
+            if (texto.isBlank()) {
+                visibility = View.GONE
+            } else {
+                text = texto
+                visibility = View.VISIBLE
+            }
+        }
+    }
+
+    private fun removerOverlay() {
+        val view = overlayView ?: return
+        try {
+            windowManager?.removeView(view)
+        } catch (e: Exception) {
+            Log.e("NINA_OVERLAY", "Falha ao remover overlay: ${e.message}")
+        } finally {
+            overlayView = null
+            overlayImage = null
+            overlayBubble = null
+        }
+    }
+
+    private fun publicarEstado(texto: String, humor: String) {
+        val intent = Intent(ACTION_NINA_STATE).apply {
+            setPackage(packageName)
+            putExtra(EXTRA_TEXTO, texto)
+            putExtra(EXTRA_HUMOR, humor)
+            putExtra(EXTRA_AFEICAO, getAfeicao())
+            putExtra(EXTRA_CIUME, ciume)
+        }
+        sendBroadcast(intent)
+    }
+
     private fun isModoTeste(): Boolean {
         return getSharedPreferences("NinaPrefs", Context.MODE_PRIVATE).getBoolean("disponibilidade_total", false)
+    }
+
+    override fun onDestroy() {
+        removerOverlay()
+        if (instance === this) instance = null
+        super.onDestroy()
     }
 }

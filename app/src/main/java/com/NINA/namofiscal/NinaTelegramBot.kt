@@ -15,6 +15,11 @@ class NinaTelegramBot(
     private val client = OkHttpClient()
 
     private fun enviarMensagem(texto: String) {
+        if (!isConfigurado()) {
+            Log.d("NINA_TELEGRAM", "Telegram sem token/chatId configurado. Mensagem mantida so no app.")
+            return
+        }
+
         val url = "https://api.telegram.org/bot$token/sendMessage".toHttpUrl()
             .newBuilder()
             .addQueryParameter("chat_id", chatId)
@@ -32,6 +37,13 @@ class NinaTelegramBot(
                 response.close()
             }
         })
+    }
+
+    private fun isConfigurado(): Boolean {
+        return token.isNotBlank() &&
+            chatId.isNotBlank() &&
+            !token.startsWith("SEU_") &&
+            !chatId.startsWith("SEU_")
     }
 
     // ===================== FISCALIZAÇÃO DA NINA (Sempre em PT-BR) =====================

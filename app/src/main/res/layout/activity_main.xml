@@ -65,6 +65,7 @@
 
         <!-- Wallpaper de fundo (pode ser um gradiente ou imagem) -->
         <TextView
+            android:id="@+id/tv_home_clock"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="12:34"
@@ -74,12 +75,40 @@
             android:layout_marginTop="60dp"
             android:textStyle="bold" />
 
+        <ImageView
+            android:id="@+id/img_nina_home"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:layout_below="@id/tv_home_clock"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="8dp"
+            android:src="@drawable/nina_seria" />
+
+        <TextView
+            android:id="@+id/tv_nina_status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/img_nina_home"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="6dp"
+            android:paddingStart="14dp"
+            android:paddingTop="6dp"
+            android:paddingEnd="14dp"
+            android:paddingBottom="6dp"
+            android:background="@drawable/balao_user"
+            android:text="Nina está em casa"
+            android:textColor="#4A1230"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
         <!-- Grade de Apps Fake -->
         <GridLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:columnCount="4"
-            android:layout_centerInParent="true"
+            android:layout_below="@id/tv_nina_status"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="20dp"
             android:padding="20dp">
 
             <LinearLayout android:orientation="vertical" android:gravity="center" android:layout_margin="10dp">
@@ -104,16 +133,89 @@
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="WhatsApp" android:textColor="#FFFFFF" android:textSize="10sp"/>
             </LinearLayout>
 
-            <!-- MERCADO DA NINA -->
+            <!-- SHEIN DA NINA -->
             <LinearLayout
-                android:id="@+id/btn_abrir_mercado"
+                android:id="@+id/btn_abrir_shein"
                 android:orientation="vertical"
                 android:gravity="center"
                 android:layout_margin="10dp"
                 android:clickable="true"
                 android:focusable="true">
-                <ImageView android:layout_width="60dp" android:layout_height="60dp" android:src="@android:drawable/ic_menu_view" android:background="#FFC107" android:padding="10dp" />
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Mercado" android:textColor="#FFFFFF" android:textSize="10sp"/>
+                <ImageView android:layout_width="60dp" android:layout_height="60dp" android:src="@android:drawable/ic_menu_gallery" android:background="#FF6FAE" android:padding="10dp" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Shein" android:textColor="#FFFFFF" android:textSize="10sp"/>
+            </LinearLayout>
+
+            <!-- IFOOD DA NINA -->
+            <LinearLayout
+                android:id="@+id/btn_abrir_ifood"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:layout_margin="10dp"
+                android:clickable="true"
+                android:focusable="true">
+                <ImageView android:layout_width="60dp" android:layout_height="60dp" android:src="@android:drawable/ic_menu_upload" android:background="#EA1D2C" android:padding="10dp" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="iFood" android:textColor="#FFFFFF" android:textSize="10sp"/>
+            </LinearLayout>
+
+            <!-- BOTICARIO DA NINA -->
+            <LinearLayout
+                android:id="@+id/btn_abrir_boticario"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:layout_margin="10dp"
+                android:clickable="true"
+                android:focusable="true">
+                <ImageView android:layout_width="60dp" android:layout_height="60dp" android:src="@android:drawable/ic_menu_manage" android:background="#2E7D32" android:padding="10dp" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Boticário" android:textColor="#FFFFFF" android:textSize="10sp"/>
+            </LinearLayout>
+
+            <!-- PETLOVE DA NINA -->
+            <LinearLayout
+                android:id="@+id/btn_abrir_petlove"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:layout_margin="10dp"
+                android:clickable="true"
+                android:focusable="true">
+                <ImageView android:layout_width="60dp" android:layout_height="60dp" android:src="@android:drawable/ic_menu_compass" android:background="#00A6A6" android:padding="10dp" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Petlove" android:textColor="#FFFFFF" android:textSize="10sp"/>
+            </LinearLayout>
+
+            <!-- DOCERIA DA NINA -->
+            <LinearLayout
+                android:id="@+id/btn_abrir_doceria"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:layout_margin="10dp"
+                android:clickable="true"
+                android:focusable="true">
+                <ImageView android:layout_width="60dp" android:layout_height="60dp" android:src="@android:drawable/ic_menu_myplaces" android:background="#8D5A97" android:padding="10dp" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Doceria" android:textColor="#FFFFFF" android:textSize="10sp"/>
+            </LinearLayout>
+
+            <!-- FLORES DA NINA -->
+            <LinearLayout
+                android:id="@+id/btn_abrir_flores"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:layout_margin="10dp"
+                android:clickable="true"
+                android:focusable="true">
+                <ImageView android:layout_width="60dp" android:layout_height="60dp" android:src="@android:drawable/ic_menu_send" android:background="#C2185B" android:padding="10dp" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Flores" android:textColor="#FFFFFF" android:textSize="10sp"/>
+            </LinearLayout>
+
+            <!-- MINIGAME EM BREVE -->
+            <LinearLayout
+                android:id="@+id/btn_abrir_entrega_ifood"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:layout_margin="10dp"
+                android:clickable="true"
+                android:focusable="true">
+                <ImageView android:layout_width="60dp" android:layout_height="60dp" android:src="@android:drawable/ic_menu_directions" android:background="#FF8A00" android:padding="10dp" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Entrega" android:textColor="#FFFFFF" android:textSize="10sp"/>
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Em breve" android:textColor="#FFFDE7" android:textSize="9sp"/>
             </LinearLayout>
 
             <!-- AJUSTES DA NINA -->

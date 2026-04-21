@@ -13,8 +13,18 @@ class NinaCmd(
     private var telegram: NinaTelegramBot
     private val locationTracker = NinaLocationTracker(context, this)
 
+    companion object {
+        private const val PREFS_NAME = "NinaPrefs"
+        private const val KEY_REUNIAO_SEMANA = "nina_reuniao_semana"
+        private const val KEY_REUNIOES_NA_SEMANA = "nina_reunioes_na_semana"
+        private const val KEY_REUNIAO_DIA = "nina_reuniao_dia"
+        private const val KEY_REUNIAO_HOJE = "nina_reuniao_hoje"
+        private const val MAX_REUNIOES_ALMOCO_POR_SEMANA = 2
+        private const val CHANCE_REUNIAO_ALMOCO = 35
+    }
+
     init {
-        val prefs = context.getSharedPreferences("NinaPrefs", Context.MODE_PRIVATE)
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         nomeUsuario = prefs.getString("nome_usuario", "namorado") ?: "amor"
 
         // ================== CONFIGURE SEU TOKEN E CHAT ID AQUI ==================
@@ -33,7 +43,7 @@ class NinaCmd(
 
     fun definirNomeUsuario(novoNome: String) {
         nomeUsuario = novoNome.lowercase()
-        val prefs = context.getSharedPreferences("NinaPrefs", Context.MODE_PRIVATE)
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         prefs.edit().putString("nome_usuario", novoNome).apply()
         
         // Atualiza a instância do telegram com o novo nome
@@ -56,25 +66,108 @@ class NinaCmd(
     }
 
     // ===================== ROTINA + IDENTIFICAÇÃO =====================
-    private fun estaNoTrabalho(): Boolean = Calendar.getInstance().get(Calendar.HOUR_OF_DAY) in 9..14
+    private fun estaNoTrabalho(): Boolean = Calendar.getInstance().get(Calendar.HOUR_OF_DAY) in 9..15
     private fun estaNoAlmoco(): Boolean {
         val cal = Calendar.getInstance()
-        return cal.get(Calendar.HOUR_OF_DAY) == 12 && cal.get(Calendar.MINUTE) in 0..30
+        return cal.get(Calendar.HOUR_OF_DAY) == 12
     }
     private fun estaCorrendo(): Boolean = Calendar.getInstance().get(Calendar.HOUR_OF_DAY) == 17
     private fun estaDormindo(): Boolean = Calendar.getInstance().get(Calendar.HOUR_OF_DAY) >= 23 || Calendar.getInstance().get(Calendar.HOUR_OF_DAY) < 6
 
     private fun getMedidorHumor(): Int = service.getAfeicao()
 
-    private fun podeResponderAgora(): Boolean {
+    fun mensagemIndisponibilidadeAtual(): String? {
         val humor = getMedidorHumor()
         return when {
-            estaDormindo() -> humor > 70
-            estaCorrendo() -> false
-            estaNoAlmoco() && service.temReuniao() -> false
-            estaNoTrabalho() -> humor >= 31
-            else -> true
+            estaEmReuniaoNoAlmoco() -> mensagemReuniaoAlmoco(humor)
+            estaDormindo() && !sorteouDisponibilidade(chanceRespostaDormindo(humor)) ->
+                "Zzz... tô dormindo, $nomeUsuario. Se fosse urgente talvez eu acordasse... talvez. 💤"
+            estaCorrendo() ->
+                "Tô correndo, $nomeUsuario! Só áudio agora. Não me desconcentra. 🏃‍♀️"
+            estaNoAlmoco() && !sorteouDisponibilidade(chanceRespostaAlmoco(humor)) ->
+                "Tô tentando almoçar, $nomeUsuario. Resume antes que eu me irrite. 🍽️"
+            estaNoTrabalho() && !sorteouDisponibilidade(chanceRespostaTrabalho(humor)) ->
+                "Tô trabalhando, $nomeUsuario. Vi sua mensagem, mas agora não dá. 📎"
+            else -> null
         }
+    }
+
+    private fun sorteouDisponibilidade(chancePercentual: Int): Boolean {
+        return Random().nextInt(100) < chancePercentual.coerceIn(0, 100)
+    }
+
+    private fun chanceRespostaDormindo(humor: Int): Int {
+        return when {
+            humor >= 90 -> 45
+            humor >= 80 -> 25
+            humor > 70 -> 12
+            else -> 0
+        }
+    }
+
+    private fun chanceRespostaTrabalho(humor: Int): Int {
+        return when {
+            humor >= 80 -> 70
+            humor >= 50 -> 45
+            humor >= 31 -> 25
+            else -> 0
+        }
+    }
+
+    private fun chanceRespostaAlmoco(humor: Int): Int {
+        return when {
+            humor >= 80 -> 80
+            humor >= 50 -> 60
+            humor >= 31 -> 40
+            else -> 15
+        }
+    }
+
+    private fun estaEmReuniaoNoAlmoco(): Boolean {
+        if (!estaNoAlmoco()) return false
+
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val agora = Calendar.getInstance()
+        val semanaAtual = "${agora.get(Calendar.YEAR)}-${agora.get(Calendar.WEEK_OF_YEAR)}"
+        val diaAtual = "${agora.get(Calendar.YEAR)}-${agora.get(Calendar.DAY_OF_YEAR)}"
+
+        if (prefs.getString(KEY_REUNIAO_SEMANA, "") != semanaAtual) {
+            prefs.edit()
+                .putString(KEY_REUNIAO_SEMANA, semanaAtual)
+                .putInt(KEY_REUNIOES_NA_SEMANA, 0)
+                .remove(KEY_REUNIAO_DIA)
+                .remove(KEY_REUNIAO_HOJE)
+                .apply()
+        }
+
+        if (prefs.getString(KEY_REUNIAO_DIA, "") == diaAtual) {
+            return prefs.getBoolean(KEY_REUNIAO_HOJE, false)
+        }
+
+        val reunioesNaSemana = prefs.getInt(KEY_REUNIOES_NA_SEMANA, 0)
+        val temReuniaoHoje = reunioesNaSemana < MAX_REUNIOES_ALMOCO_POR_SEMANA &&
+            Random().nextInt(100) < CHANCE_REUNIAO_ALMOCO
+
+        prefs.edit()
+            .putString(KEY_REUNIAO_DIA, diaAtual)
+            .putBoolean(KEY_REUNIAO_HOJE, temReuniaoHoje)
+            .putInt(
+                KEY_REUNIOES_NA_SEMANA,
+                if (temReuniaoHoje) reunioesNaSemana + 1 else reunioesNaSemana
+            )
+            .apply()
+
+        return temReuniaoHoje
+    }
+
+    private fun mensagemReuniaoAlmoco(humor: Int): String {
+        val emojis = when {
+            humor >= 80 -> "📊💕"
+            humor >= 50 -> "📊😤"
+            humor >= 31 -> "📎🙄"
+            else -> "🚫📵"
+        }
+        return "Tô em reunião agora. Pulei até o almoço hoje, depois eu te respondo. $emojis"
     }
 
     // ===================== EXECUTAR COM INTEGRAÇÃO TELEGRAM =====================
@@ -229,14 +322,16 @@ class NinaCmd(
         val humor = getMedidorHumor()
         Log.d("NINA_CMD", "Usuário: $nomeUsuario | Intenção: ${intencao.name} | Hora: ${Calendar.getInstance().get(Calendar.HOUR_OF_DAY)}h")
 
-        if (!podeResponderAgora() && intencao != IntencaoNina.PENSANDO) {
+        val indisponivel = mensagemIndisponibilidadeAtual()
+        if (indisponivel != null && intencao != IntencaoNina.PENSANDO) {
             telegram.reclamarRotina()
-            when {
-                estaDormindo() -> service.mudarHumor("Zzz... tô dormindo, $nomeUsuario. Amanhã te respondo 💤", NinaInventory.EMO_DORMINDO)
-                estaCorrendo() -> service.mudarHumor("Tô correndo, $nomeUsuario! Só áudio agora 🏃‍♀️", NinaInventory.EMO_CORRENDO)
-                estaNoTrabalho() -> service.mudarHumor("Tô trabalhando, $nomeUsuario. Fala rápido.", NinaInventory.EMO_TRABALHO)
-                else -> service.mudarHumor("Tô ocupada agora, $nomeUsuario...", NinaInventory.EMO_NEUTRA)
+            val humorVisual = when {
+                estaDormindo() -> NinaInventory.EMO_DORMINDO
+                estaCorrendo() -> NinaInventory.EMO_CORRENDO
+                estaNoTrabalho() || estaNoAlmoco() -> NinaInventory.EMO_TRABALHO
+                else -> NinaInventory.EMO_NEUTRA
             }
+            service.mudarHumor(indisponivel, humorVisual)
             return
         }
 
@@ -293,9 +388,10 @@ class NinaCmd(
         val hora = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
         val look = when {
             hora in 0..5   -> NinaInventory.LOOK_PIJAMA
-            hora in 6..11  -> NinaInventory.LOOK_CASUAL
-            hora in 12..15 -> NinaInventory.LOOK_TRABALHO
+            hora in 6..8   -> NinaInventory.LOOK_CASUAL
+            hora in 9..15  -> NinaInventory.LOOK_TRABALHO
             hora == 17     -> NinaInventory.LOOK_SPORT
+            hora in 16..22 -> NinaInventory.LOOK_CASUAL
             else           -> NinaInventory.LOOK_PIJAMA
         }
         service.mudarHumor("", look)
@@ -305,26 +401,26 @@ class NinaCmd(
         val item = NinaInventory.getStoreItems().find { it.id == idItem } ?: return
         val humor = getMedidorHumor()
 
-        if (idItem == "biquini_rosa" && humor < 80) {
-            service.mudarHumor("VOCÊ TÁ MALUCO, $nomeUsuario? Nem temos essa intimidade pra eu usar isso! 😳😤", NinaInventory.EMO_BRAVA)
-            adicionarVacilo("Tentou me dar biquíni sem intimidade.")
+        if (humor < item.intimidadeMinima) {
+            service.mudarHumor("VOCÊ TÁ MALUCO, $nomeUsuario? ${item.nome} agora não. Nem temos essa intimidade toda! 😳😤", NinaInventory.EMO_BRAVA)
+            adicionarVacilo("Tentou comprar ${item.nome} sem intimidade suficiente.")
         } else {
-            val resposta = "Obrigada pelo presente, $nomeUsuario! ${item.nome} é lindo! 😍💕"
-            service.mudarHumor(resposta, NinaInventory.LOOK_CASUAL)
-            service.subirCarinho(20)
+            val resposta = "Obrigada pelo presente, $nomeUsuario! ${item.nome} é lindo! Eu vi lá no ${item.app.titulo} 😍💕"
+            service.mudarHumor(resposta, item.lookLiberado ?: NinaInventory.EMO_CARINHOSA)
+            service.subirCarinho(item.carinhoBonus)
             telegram.mensagemCarinhosa("Ganhei um presente: ${item.nome} 💕")
         }
     }
 
     fun limparBarra() {
-        val prefs = context.getSharedPreferences("NinaPrefs", Context.MODE_PRIVATE)
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         prefs.edit().remove("historico_vacilos").apply()
         service.subirCarinho(100)
         service.mudarHumor("Tá bom, $nomeUsuario... te perdoo dessa vez. Mas não abusa! 🙄💖", NinaInventory.EMO_CARINHOSA)
     }
 
     fun adicionarVacilo(descricao: String) {
-        val prefs = context.getSharedPreferences("NinaPrefs", Context.MODE_PRIVATE)
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         val vacilos = prefs.getStringSet("historico_vacilos", mutableSetOf())?.toMutableSet() ?: mutableSetOf()
 
         val data = java.text.SimpleDateFormat("dd/MM HH:mm", Locale.getDefault()).format(Date())
