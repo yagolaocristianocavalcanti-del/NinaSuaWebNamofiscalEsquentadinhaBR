@@ -16,7 +16,7 @@ data class NinaOuting(
     val startHour: Int,
     val endHour: Int
 ) {
-    fun isActive(now: Calendar = Calendar.getInstance()): Boolean {
+    fun isActive(now: Calendar): Boolean {
         val hour = now.get(Calendar.HOUR_OF_DAY)
         return companion != NinaOutingCompanion.NENHUM &&
             now.get(Calendar.DAY_OF_WEEK) == dayOfWeek &&
@@ -50,12 +50,12 @@ object NinaSchedule {
 
     fun isDayOffToday(context: Context): Boolean {
         ensureNextWeekPlannedOnMonday(context)
-        val today = Calendar.getInstance().get(Calendar.DAY_OF_WEEK)
+        val today = NinaTime.now(context).get(Calendar.DAY_OF_WEEK)
         return today == Calendar.SUNDAY || today == getCurrentWeekAgenda(context).randomWeekdayOff
     }
 
     fun getDayOffLabel(context: Context): String {
-        return if (Calendar.getInstance().get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY) {
+        return if (NinaTime.now(context).get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY) {
             "domingo"
         } else {
             dayName(getCurrentWeekAgenda(context).randomWeekdayOff)
@@ -63,7 +63,7 @@ object NinaSchedule {
     }
 
     fun ensureTodayOffForOnboarding(context: Context) {
-        val today = Calendar.getInstance().get(Calendar.DAY_OF_WEEK)
+        val today = NinaTime.now(context).get(Calendar.DAY_OF_WEEK)
         if (today == Calendar.SUNDAY || today == Calendar.SATURDAY) return
 
         val agenda = getCurrentWeekAgenda(context)
@@ -88,13 +88,13 @@ object NinaSchedule {
         val agenda = getCurrentWeekAgenda(context)
         val nextAgenda = getNextWeekAgenda(context)
         val currentOuting = describePublicOuting(agenda.outing)
-        val nextWeek = if (isMonday()) {
+        val nextWeek = if (isMonday(context)) {
             " A próxima semana já ficou decidida hoje: minha folga extra vai ser ${dayName(nextAgenda.randomWeekdayOff)}${describePublicOuting(nextAgenda.outing)}."
         } else {
             ""
         }
 
-        return "Minha rotina é assim: eu trabalho das 9h às 15h, almoço às 12h, corro às 17h e vou dormir às 23h. Domingo eu sempre folgo, e toda semana eu tenho uma folga aleatória que eu mesma decido. Essa semana minha folga extra é ${dayName(agenda.randomWeekdayOff)}$currentOuting.$nextWeek"
+        return "Minha rotina é assim: eu trabalho das 9h às 15h, almoço às 12h, corro às 17h e vou dormir às 23h. Domingo eu sempre folgo, e toda semana eu tenho uma folga aleatória que eu mesma decido. Essa semana minha folga extra é ${dayName(agenda.randomWeekdayOff)}$currentOuting. ${NinaTime.describeScale()}$nextWeek"
     }
 
     fun getCurrentWeekAgenda(context: Context): NinaWeeklyAgenda {
@@ -109,7 +109,7 @@ object NinaSchedule {
 
     fun getActiveOuting(context: Context): NinaOuting? {
         val outing = getCurrentWeekAgenda(context).outing ?: return null
-        return if (outing.isActive()) outing else null
+        return if (outing.isActive(NinaTime.now(context))) outing else null
     }
 
     fun isOutWithMaleFriendNow(context: Context): Boolean {
@@ -137,7 +137,7 @@ object NinaSchedule {
         } else {
             getAgendaForWeek(context, weekOffset)
         }
-        val today = Calendar.getInstance().get(Calendar.DAY_OF_WEEK)
+        val today = NinaTime.now(context).get(Calendar.DAY_OF_WEEK)
         val days = listOf(
             Calendar.SUNDAY,
             Calendar.MONDAY,
@@ -159,14 +159,14 @@ object NinaSchedule {
     }
 
     private fun ensureNextWeekPlannedOnMonday(context: Context) {
-        if (isMonday()) {
+        if (isMonday(context)) {
             getAgendaForWeek(context, 1)
         }
     }
 
     private fun getAgendaForWeek(context: Context, weekOffset: Int): NinaWeeklyAgenda {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        val calendar = Calendar.getInstance().apply {
+        val calendar = NinaTime.now(context).apply {
             add(Calendar.WEEK_OF_YEAR, weekOffset)
         }
         val weekKey = getWeekKey(calendar)
@@ -275,8 +275,8 @@ object NinaSchedule {
         return "nina_agenda_${weekKey}_$field"
     }
 
-    private fun isMonday(): Boolean {
-        return Calendar.getInstance().get(Calendar.DAY_OF_WEEK) == Calendar.MONDAY
+    private fun isMonday(context: Context): Boolean {
+        return NinaTime.now(context).get(Calendar.DAY_OF_WEEK) == Calendar.MONDAY
     }
 
     private fun dayName(day: Int): String {

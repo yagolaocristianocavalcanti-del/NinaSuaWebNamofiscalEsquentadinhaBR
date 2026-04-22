@@ -1,5 +1,6 @@
 package com.nina.namofiscal
 
+import android.content.Context
 import android.util.Log
 import okhttp3.*
 import okhttp3.HttpUrl.Companion.toHttpUrl
@@ -7,6 +8,7 @@ import java.io.IOException
 import java.util.*
 
 class NinaTelegramBot(
+    private val context: Context,
     private val token: String,
     private val chatId: String,
     private val nomeUsuario: String
@@ -96,7 +98,7 @@ class NinaTelegramBot(
     }
 
     fun reclamarRotina() {
-        val hora = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+        val hora = NinaTime.now(context).get(Calendar.HOUR_OF_DAY)
         val msg = when {
             hora in 9..15 -> "Tô ocupada trabalhando, $nomeUsuario... não fica dando em cima de outras enquanto eu não vejo! 😤"
             hora >= 23 -> "Tô indo dormir. Ai de você se eu ver luz de celular acesa depois que eu apagar! 💤"

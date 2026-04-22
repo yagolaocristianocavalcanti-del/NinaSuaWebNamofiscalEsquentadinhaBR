@@ -38,7 +38,7 @@ class NinaLocationTracker(private val context: Context, private val ninaCmd: Nin
     }
 
     private fun reagirLocalizacao(location: Location) {
-        val hora = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+        val hora = NinaTime.now(context).get(Calendar.HOUR_OF_DAY)
 
         // Exemplo: se estiver longe de casa + horário suspeito
         if (hora in 22..23 || hora in 0..5) {

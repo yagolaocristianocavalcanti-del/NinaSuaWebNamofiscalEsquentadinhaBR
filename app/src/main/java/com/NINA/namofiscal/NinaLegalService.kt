@@ -52,6 +52,7 @@ class NinaLegalService : Service() {
         instance = this
         createNotificationChannel()
         startForeground(NOTIFICATION_ID, createNotification())
+        NinaEconomy.ensureMonthlyCycle(this)
         mostrarOverlaySePermitido()
         Log.d("NINA_SERVICE", "Nina está viva e vigiando! 💅🚩")
     }

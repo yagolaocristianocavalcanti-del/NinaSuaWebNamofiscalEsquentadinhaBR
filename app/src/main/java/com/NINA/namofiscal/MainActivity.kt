@@ -57,9 +57,11 @@ class MainActivity : AppCompatActivity() {
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        NinaEconomy.ensureMonthlyCycle(applicationContext)
 
         setupChat()
         setupButtons()
+        atualizarRelogioDaNina()
         atualizarStatusNina("", NinaInventory.EMO_NEUTRA, 50, 30)
         checkPermissions()
     }
@@ -170,6 +172,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun mostrarAgendaDaNina() {
+        atualizarRelogioDaNina()
         atualizarAgendaDaNina()
         binding.permissionContainer.visibility = View.GONE
         binding.ninaHomeContainer.visibility = View.GONE
@@ -190,11 +193,15 @@ class MainActivity : AppCompatActivity() {
         )
         val folgaExtra = dias.firstOrNull { it.summary.contains("Folga extra", ignoreCase = true) }?.title ?: "?"
 
-        binding.tvAgendaSubtitle.text = "Semana atual | folga extra: $folgaExtra"
+        binding.tvAgendaSubtitle.text = "Semana atual | ${NinaTime.phoneClock(applicationContext)} | folga extra: $folgaExtra"
         views.zip(dias).forEach { (view, day) ->
             val prefix = if (day.isToday) "HOJE | " else ""
             view.text = "$prefix${day.title}\n${day.summary}"
         }
+    }
+
+    private fun atualizarRelogioDaNina() {
+        binding.tvHomeClock.text = NinaTime.phoneClock(applicationContext)
     }
 
     private fun atualizarStatusNina(texto: String, humor: String?, afeicao: Int, ciume: Int) {
@@ -271,7 +278,12 @@ class MainActivity : AppCompatActivity() {
 
                     indisponivel ?: run {
                         val ia = ninaIA ?: NinaIA(applicationContext).also { ninaIA = it }
-                        ia.responder(texto, NinaSchedule.getMessageContext(applicationContext))
+                        val contextoExtra = listOf(
+                            NinaTime.describeScale(),
+                            NinaSchedule.getMessageContext(applicationContext),
+                            NinaEconomy.getPromptContext(applicationContext)
+                        ).filter { it.isNotBlank() }.joinToString("\n")
+                        ia.responder(texto, contextoExtra)
                     }
                 }
             }
@@ -312,6 +324,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun mostrarHomeNina() {
+        atualizarRelogioDaNina()
         binding.permissionContainer.visibility = View.GONE
         binding.ninaHomeContainer.visibility = View.VISIBLE
         binding.chatContainer.visibility = View.GONE
@@ -340,6 +353,9 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        if (::binding.isInitialized) {
+            atualizarRelogioDaNina()
+        }
         checkPermissions()
     }
 

@@ -29,6 +29,7 @@ class NinaCmd(
 
         // ================== CONFIGURE SEU TOKEN E CHAT ID AQUI ==================
         telegram = NinaTelegramBot(
+            context = context,
             token = "SEU_TOKEN_AQUI",           // ← Troque pelo seu token do BotFather
             chatId = "SEU_CHAT_ID_AQUI",        // ← Troque pelo seu ID do Telegram
             nomeUsuario = nomeUsuario
@@ -48,6 +49,7 @@ class NinaCmd(
         
         // Atualiza a instância do telegram com o novo nome
         telegram = NinaTelegramBot(
+            context = context,
             token = "SEU_TOKEN_AQUI",
             chatId = "SEU_CHAT_ID_AQUI",
             nomeUsuario = nomeUsuario
@@ -68,14 +70,17 @@ class NinaCmd(
     // ===================== ROTINA + IDENTIFICAÇÃO =====================
     private fun estaNoTrabalho(): Boolean {
         return !NinaSchedule.isDayOffToday(context) &&
-            Calendar.getInstance().get(Calendar.HOUR_OF_DAY) in 9..15
+            NinaTime.now(context).get(Calendar.HOUR_OF_DAY) in 9..15
     }
     private fun estaNoAlmoco(): Boolean {
-        val cal = Calendar.getInstance()
+        val cal = NinaTime.now(context)
         return cal.get(Calendar.HOUR_OF_DAY) == 12
     }
-    private fun estaCorrendo(): Boolean = Calendar.getInstance().get(Calendar.HOUR_OF_DAY) == 17
-    private fun estaDormindo(): Boolean = Calendar.getInstance().get(Calendar.HOUR_OF_DAY) >= 23 || Calendar.getInstance().get(Calendar.HOUR_OF_DAY) < 6
+    private fun estaCorrendo(): Boolean = NinaTime.now(context).get(Calendar.HOUR_OF_DAY) == 17
+    private fun estaDormindo(): Boolean {
+        val hora = NinaTime.now(context).get(Calendar.HOUR_OF_DAY)
+        return hora >= 23 || hora < 6
+    }
 
     private fun getMedidorHumor(): Int = service.getAfeicao()
 
@@ -143,7 +148,7 @@ class NinaCmd(
         if (!estaNoAlmoco()) return false
 
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        val agora = Calendar.getInstance()
+        val agora = NinaTime.now(context)
         val semanaAtual = "${agora.get(Calendar.YEAR)}-${agora.get(Calendar.WEEK_OF_YEAR)}"
         val diaAtual = "${agora.get(Calendar.YEAR)}-${agora.get(Calendar.DAY_OF_YEAR)}"
 
@@ -252,7 +257,7 @@ class NinaCmd(
      */
     suspend fun reagirAutomaticamente(evento: NinaEvento) {
         val humorAtual = getMedidorHumor()
-        val hora = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+        val hora = NinaTime.now(context).get(Calendar.HOUR_OF_DAY)
 
         when (evento) {
             // ===================== APPS ABERTOS =====================
@@ -336,7 +341,7 @@ class NinaCmd(
 
     fun executar(intencao: IntencaoNina) {
         val humor = getMedidorHumor()
-        Log.d("NINA_CMD", "Usuário: $nomeUsuario | Intenção: ${intencao.name} | Hora: ${Calendar.getInstance().get(Calendar.HOUR_OF_DAY)}h")
+        Log.d("NINA_CMD", "Usuário: $nomeUsuario | Intenção: ${intencao.name} | Hora Nina: ${NinaTime.now(context).get(Calendar.HOUR_OF_DAY)}h")
 
         val indisponivel = mensagemIndisponibilidadeAtual()
         if (indisponivel != null && intencao != IntencaoNina.PENSANDO) {
@@ -401,7 +406,7 @@ class NinaCmd(
     }
 
     fun aplicarLookAutomatico() {
-        val hora = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+        val hora = NinaTime.now(context).get(Calendar.HOUR_OF_DAY)
         val look = when {
             hora in 0..5   -> NinaInventory.LOOK_PIJAMA
             hora in 6..8   -> NinaInventory.LOOK_CASUAL
