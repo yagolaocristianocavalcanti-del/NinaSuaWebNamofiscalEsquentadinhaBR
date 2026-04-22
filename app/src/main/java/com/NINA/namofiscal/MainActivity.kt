@@ -102,6 +102,7 @@ class MainActivity : AppCompatActivity() {
         binding.btnAbrirZap.setOnClickListener {
             binding.ninaHomeContainer.visibility = View.GONE
             binding.agendaContainer.visibility = View.GONE
+            binding.bankContainer.visibility = View.GONE
             binding.chatContainer.visibility = View.VISIBLE
         }
 
@@ -141,7 +142,15 @@ class MainActivity : AppCompatActivity() {
             mostrarAgendaDaNina()
         }
 
+        binding.btnAbrirBanco.setOnClickListener {
+            mostrarBancoDaNina()
+        }
+
         binding.btnFecharAgenda.setOnClickListener {
+            mostrarHomeNina()
+        }
+
+        binding.btnFecharBanco.setOnClickListener {
             mostrarHomeNina()
         }
 
@@ -177,7 +186,55 @@ class MainActivity : AppCompatActivity() {
         binding.permissionContainer.visibility = View.GONE
         binding.ninaHomeContainer.visibility = View.GONE
         binding.chatContainer.visibility = View.GONE
+        binding.bankContainer.visibility = View.GONE
         binding.agendaContainer.visibility = View.VISIBLE
+    }
+
+    private fun mostrarBancoDaNina() {
+        val access = NinaBankPrivacy.registerOpen(applicationContext)
+        NinaLegalService.getInstance()?.mudarHumor(access.complaint, NinaInventory.EMO_IRRITADA)
+        atualizarBancoDaNina(access)
+        binding.permissionContainer.visibility = View.GONE
+        binding.ninaHomeContainer.visibility = View.GONE
+        binding.chatContainer.visibility = View.GONE
+        binding.agendaContainer.visibility = View.GONE
+        binding.bankContainer.visibility = View.VISIBLE
+    }
+
+    private fun atualizarBancoDaNina(access: NinaBankAccess? = null) {
+        val snapshot = NinaEconomy.ensureMonthlyCycle(applicationContext)
+        val hideBalance = access?.shouldHideBalance ?: NinaBankPrivacy.isBalanceHidden(applicationContext)
+        val visibleBills = snapshot.bills.filterNot { it.isSecret }
+        val billText = visibleBills.joinToString("\n") { bill ->
+            val cadence = if (bill.cadence == BillCadence.TRIMESTRAL) " trimestral" else ""
+            "${bill.nome}: ${NinaEconomy.formatMoney(bill.money)}$cadence"
+        }
+        val statementText = NinaEconomy.getLedger(applicationContext)
+            .takeLast(8)
+            .joinToString("\n") { entry ->
+                val signal = if (entry.type == NinaLedgerType.ENTRADA) "+" else "-"
+                "$signal ${NinaEconomy.formatMoney(entry.money)} | ${entry.label}"
+            }
+            .ifBlank { "Sem movimentos visiveis ainda." }
+        val visibleBillsTotal = visibleBills.sumOf { it.money }
+
+        binding.tvBankSubtitle.text = "Telefone da Nina | ${NinaTime.phoneClock(applicationContext)}"
+        binding.tvBankWarning.text = access?.complaint ?: "Hmpf. Mexe pouco no meu banco."
+        binding.tvBankBalance.text = if (hideBalance) {
+            "Saldo: escondido"
+        } else {
+            "Saldo: ${NinaEconomy.formatMoney(snapshot.balanceMoney)}"
+        }
+        binding.tvBankSalary.text =
+            "Salario mensal: ${NinaEconomy.formatMoney(snapshot.monthlySalaryMoney)}\n" +
+            "Salario-base: ${NinaEconomy.formatMoney(snapshot.baseSalaryMoney)}\n" +
+            "Sobra prevista: ${NinaEconomy.formatMoney(snapshot.disposableMoney)}"
+        binding.tvBankBills.text =
+            "Contas visiveis: ${NinaEconomy.formatMoney(visibleBillsTotal)}\n$billText"
+        binding.tvBankStatement.text = "Extrato do mes\n$statementText"
+        binding.tvBankIndex.text =
+            "Indice: 1 Big Mac = ${snapshot.bigMacPriceMoney} dinheiros\n" +
+            "Compra real: 1 Big Mac real = ${NinaEconomy.getUserRealMoneyIndex().gameBigsPerRealBigMac} Bigs no game"
     }
 
     private fun atualizarAgendaDaNina() {
@@ -272,6 +329,11 @@ class MainActivity : AppCompatActivity() {
                 if (!onboarding.isDone()) {
                     onboarding.handleUserMessage(texto)
                 } else {
+                    val ajudaEmergencial = NinaEconomy.handleEmergencyMessage(applicationContext, texto)
+                    if (ajudaEmergencial != null) {
+                        return@withContext ajudaEmergencial
+                    }
+
                     val indisponivel = NinaLegalService.getInstance()?.let { service ->
                         NinaCmd(service, applicationContext).mensagemIndisponibilidadeAtual()
                     }
@@ -329,6 +391,7 @@ class MainActivity : AppCompatActivity() {
         binding.ninaHomeContainer.visibility = View.VISIBLE
         binding.chatContainer.visibility = View.GONE
         binding.agendaContainer.visibility = View.GONE
+        binding.bankContainer.visibility = View.GONE
     }
 
     private fun hasUsageStatsPermission(): Boolean {
