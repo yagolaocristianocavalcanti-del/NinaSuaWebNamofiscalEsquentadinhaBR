@@ -163,6 +163,48 @@ class NinaLegalService : Service() {
             y = 120
         }
 
+        view.setOnTouchListener(object : View.OnTouchListener {
+            private var initialX: Int = 0
+            private var initialY: Int = 0
+            private var initialTouchX: Float = 0f
+            private var initialTouchY: Float = 0f
+            private var lastMoveTime: Long = 0
+
+            override fun onTouch(v: View, event: android.view.MotionEvent): Boolean {
+                when (event.action) {
+                    android.view.MotionEvent.ACTION_DOWN -> {
+                        initialX = params.x
+                        initialY = params.y
+                        initialTouchX = event.rawX
+                        initialTouchY = event.rawY
+                        
+                        val msg = if (afeicao > 80) "Ai amor, aí não... ❤️" else "Ei! Não me toca! 😤"
+                        mudarHumor(msg, NinaInventory.EMO_IRRITADA)
+                        return true
+                    }
+                    android.view.MotionEvent.ACTION_MOVE -> {
+                        params.x = initialX + (initialTouchX - event.rawX).toInt()
+                        params.y = initialY + (event.rawY - initialTouchY).toInt()
+                        windowManager?.updateViewLayout(view, params)
+                        
+                        val now = System.currentTimeMillis()
+                        if (now - lastMoveTime > 2000) {
+                            val msg = listOf(
+                                "Ei! Tô aqui, não me move! 😡",
+                                "Cuidado onde pega, safado!",
+                                "Tá rápido demais! 😵‍💫",
+                                "Me solta, Yago!"
+                            ).random()
+                            mudarHumor(msg, NinaInventory.EMO_IRRITADA)
+                            lastMoveTime = now
+                        }
+                        return true
+                    }
+                }
+                return false
+            }
+        })
+
         try {
             windowManager?.addView(view, params)
             overlayView = view
@@ -174,13 +216,7 @@ class NinaLegalService : Service() {
 
     private fun atualizarOverlay(texto: String, humor: String) {
         mostrarOverlaySePermitido()
-        val saidaAtual = NinaSchedule.getActiveOuting(this)
-        val visualStatus = when (saidaAtual?.companion) {
-            NinaOutingCompanion.AMIGAS -> NinaVisualStatuses.get(NinaStatusKey.SAINDO_COM_AMIGAS)
-            NinaOutingCompanion.AMIGO -> NinaVisualStatuses.get(NinaStatusKey.SAINDO_COM_AMIGO)
-            else -> NinaVisualStatuses.fromHumor(humor, texto)
-        }
-        overlayImage?.setImageResource(visualStatus.imageRes)
+        overlayImage?.setImageResource(NinaOverlayLooks.imageFor(this, humor, texto))
         overlayBubble?.apply {
             if (texto.isBlank()) {
                 visibility = View.GONE

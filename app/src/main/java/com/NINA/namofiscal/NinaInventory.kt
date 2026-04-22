@@ -47,7 +47,7 @@ object NinaInventory {
 
     // Mapeamento de Imagens
     fun getResourceForHumor(humor: String): Int {
-        return NinaVisualStatuses.fromHumor(humor).imageRes
+        return NinaOverlayLooks.imageFor(humor = humor)
     }
 
     fun getStoreApps(): List<NinaStoreApp> = NinaStoreApp.entries

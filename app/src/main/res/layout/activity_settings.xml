@@ -19,24 +19,41 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Modelo da IA (.bin)"
-        android:textStyle="bold" />
+        android:textStyle="bold"
+        android:textColor="#4A1230" />
     <EditText
         android:id="@+id/et_model_path"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="/sdcard/Download/gemma3.bin"
+        android:inputType="textUri"
+        android:singleLine="true"
+        android:textColor="#311B92"
+        android:textColorHint="#880E4F"
+        android:layout_marginBottom="8dp" />
+
+    <Button
+        android:id="@+id/btn_select_model"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="ESCOLHER ARQUIVO DO CÉREBRO"
+        android:backgroundTint="#7E498F"
+        android:textColor="#FFFFFF"
         android:layout_marginBottom="16dp" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Seu Nome (Como ela te chama)"
-        android:textStyle="bold" />
+        android:textStyle="bold"
+        android:textColor="#4A1230" />
     <EditText
         android:id="@+id/et_user_name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="yago"
+        android:textColor="#311B92"
+        android:textColorHint="#880E4F"
         android:layout_marginBottom="16dp" />
 
     <CheckBox
@@ -44,6 +61,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Modo Ciúme Extremo (Beta)"
+        android:textColor="#880E4F"
+        android:buttonTint="#AD1457"
         android:layout_marginBottom="8dp" />
 
     <CheckBox
@@ -51,7 +70,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Modo 100% Disponível (Testes)"
-        android:textColor="#2E7D32"
+        android:textColor="#1B5E20"
+        android:buttonTint="#2E7D32"
         android:textStyle="bold"
         android:layout_marginBottom="24dp" />
 

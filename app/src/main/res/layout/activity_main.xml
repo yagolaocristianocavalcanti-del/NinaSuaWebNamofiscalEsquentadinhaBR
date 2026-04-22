@@ -75,49 +75,23 @@
             android:layout_marginTop="60dp"
             android:textStyle="bold" />
 
-        <ImageView
-            android:id="@+id/img_nina_home"
-            android:layout_width="120dp"
-            android:layout_height="120dp"
-            android:layout_below="@id/tv_home_clock"
-            android:layout_centerHorizontal="true"
-            android:layout_marginTop="8dp"
-            android:src="@drawable/nina_seria" />
-
-        <TextView
-            android:id="@+id/tv_nina_status"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/img_nina_home"
-            android:layout_centerHorizontal="true"
-            android:layout_marginTop="6dp"
-            android:paddingStart="14dp"
-            android:paddingTop="6dp"
-            android:paddingEnd="14dp"
-            android:paddingBottom="6dp"
-            android:background="@drawable/balao_user"
-            android:text="Nina está em casa"
-            android:textColor="#4A1230"
-            android:textSize="13sp"
-            android:textStyle="bold" />
-
         <!-- Grade de Apps Fake -->
         <GridLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:columnCount="4"
-            android:layout_below="@id/tv_nina_status"
+            android:layout_below="@id/tv_home_clock"
             android:layout_centerHorizontal="true"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="72dp"
             android:padding="20dp">
 
             <LinearLayout android:orientation="vertical" android:gravity="center" android:layout_margin="10dp">
-                <ImageView android:layout_width="60dp" android:layout_height="60dp" android:src="@android:drawable/ic_menu_gallery" android:background="@drawable/balao_user" android:padding="10dp"/>
+                <ImageView android:layout_width="60dp" android:layout_height="60dp" android:src="@android:drawable/ic_menu_gallery" android:background="@drawable/icon_fotos_bg" android:padding="10dp" android:elevation="3dp" app:tint="#FFFFFF"/>
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Fotos" android:textColor="#FFFFFF" android:textSize="10sp"/>
             </LinearLayout>
 
             <LinearLayout android:orientation="vertical" android:gravity="center" android:layout_margin="10dp">
-                <ImageView android:layout_width="60dp" android:layout_height="60dp" android:src="@android:drawable/ic_menu_camera" android:background="@drawable/balao_user" android:padding="10dp"/>
+                <ImageView android:layout_width="60dp" android:layout_height="60dp" android:src="@android:drawable/ic_menu_camera" android:background="@drawable/icon_camera_bg" android:padding="10dp" android:elevation="3dp" app:tint="#FFFFFF"/>
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Câmera" android:textColor="#FFFFFF" android:textSize="10sp"/>
             </LinearLayout>
 
@@ -129,7 +103,7 @@
                 android:layout_margin="10dp"
                 android:clickable="true"
                 android:focusable="true">
-                <ImageView android:layout_width="60dp" android:layout_height="60dp" android:src="@android:drawable/sym_action_chat" android:background="#25D366" android:padding="10dp" />
+                <ImageView android:layout_width="60dp" android:layout_height="60dp" android:src="@android:drawable/sym_action_chat" android:background="@drawable/icon_whatsapp_bg" android:padding="10dp" android:elevation="3dp" app:tint="#FFFFFF" />
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="WhatsApp" android:textColor="#FFFFFF" android:textSize="10sp"/>
             </LinearLayout>
 
@@ -141,7 +115,7 @@
                 android:layout_margin="10dp"
                 android:clickable="true"
                 android:focusable="true">
-                <ImageView android:layout_width="60dp" android:layout_height="60dp" android:src="@android:drawable/ic_menu_gallery" android:background="#FF6FAE" android:padding="10dp" />
+                <ImageView android:layout_width="60dp" android:layout_height="60dp" android:src="@android:drawable/ic_menu_gallery" android:background="@drawable/icon_shein_bg" android:padding="10dp" android:elevation="3dp" app:tint="#FFFFFF" />
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Shein" android:textColor="#FFFFFF" android:textSize="10sp"/>
             </LinearLayout>
 
@@ -153,7 +127,7 @@
                 android:layout_margin="10dp"
                 android:clickable="true"
                 android:focusable="true">
-                <ImageView android:layout_width="60dp" android:layout_height="60dp" android:src="@android:drawable/ic_menu_upload" android:background="#EA1D2C" android:padding="10dp" />
+                <ImageView android:layout_width="60dp" android:layout_height="60dp" android:src="@android:drawable/ic_menu_upload" android:background="@drawable/icon_ifood_bg" android:padding="10dp" android:elevation="3dp" app:tint="#FFFFFF" />
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="iFood" android:textColor="#FFFFFF" android:textSize="10sp"/>
             </LinearLayout>
 
@@ -165,7 +139,7 @@
                 android:layout_margin="10dp"
                 android:clickable="true"
                 android:focusable="true">
-                <ImageView android:layout_width="60dp" android:layout_height="60dp" android:src="@android:drawable/ic_menu_manage" android:background="#2E7D32" android:padding="10dp" />
+                <ImageView android:layout_width="60dp" android:layout_height="60dp" android:src="@android:drawable/ic_menu_manage" android:background="@drawable/icon_boticario_bg" android:padding="10dp" android:elevation="3dp" app:tint="#FFFFFF" />
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Boticário" android:textColor="#FFFFFF" android:textSize="10sp"/>
             </LinearLayout>
 
@@ -177,7 +151,7 @@
                 android:layout_margin="10dp"
                 android:clickable="true"
                 android:focusable="true">
-                <ImageView android:layout_width="60dp" android:layout_height="60dp" android:src="@android:drawable/ic_menu_compass" android:background="#00A6A6" android:padding="10dp" />
+                <ImageView android:layout_width="60dp" android:layout_height="60dp" android:src="@android:drawable/ic_menu_compass" android:background="@drawable/icon_petlove_bg" android:padding="10dp" android:elevation="3dp" app:tint="#FFFFFF" />
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Petlove" android:textColor="#FFFFFF" android:textSize="10sp"/>
             </LinearLayout>
 
@@ -189,7 +163,7 @@
                 android:layout_margin="10dp"
                 android:clickable="true"
                 android:focusable="true">
-                <ImageView android:layout_width="60dp" android:layout_height="60dp" android:src="@android:drawable/ic_menu_myplaces" android:background="#8D5A97" android:padding="10dp" />
+                <ImageView android:layout_width="60dp" android:layout_height="60dp" android:src="@android:drawable/ic_menu_myplaces" android:background="@drawable/icon_doceria_bg" android:padding="10dp" android:elevation="3dp" app:tint="#FFFFFF" />
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Doceria" android:textColor="#FFFFFF" android:textSize="10sp"/>
             </LinearLayout>
 
@@ -201,7 +175,7 @@
                 android:layout_margin="10dp"
                 android:clickable="true"
                 android:focusable="true">
-                <ImageView android:layout_width="60dp" android:layout_height="60dp" android:src="@android:drawable/ic_menu_send" android:background="#C2185B" android:padding="10dp" />
+                <ImageView android:layout_width="60dp" android:layout_height="60dp" android:src="@android:drawable/ic_menu_send" android:background="@drawable/icon_flores_bg" android:padding="10dp" android:elevation="3dp" app:tint="#FFFFFF" />
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Flores" android:textColor="#FFFFFF" android:textSize="10sp"/>
             </LinearLayout>
 
@@ -213,7 +187,7 @@
                 android:layout_margin="10dp"
                 android:clickable="true"
                 android:focusable="true">
-                <ImageView android:layout_width="60dp" android:layout_height="60dp" android:src="@android:drawable/ic_menu_directions" android:background="#FF8A00" android:padding="10dp" />
+                <ImageView android:layout_width="60dp" android:layout_height="60dp" android:src="@android:drawable/ic_menu_directions" android:background="@drawable/icon_entrega_bg" android:padding="10dp" android:elevation="3dp" app:tint="#FFFFFF" />
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Entrega" android:textColor="#FFFFFF" android:textSize="10sp"/>
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Em breve" android:textColor="#FFFDE7" android:textSize="9sp"/>
             </LinearLayout>
@@ -226,7 +200,7 @@
                 android:layout_margin="10dp"
                 android:clickable="true"
                 android:focusable="true">
-                <ImageView android:layout_width="60dp" android:layout_height="60dp" android:src="@android:drawable/ic_menu_week" android:background="#5B3A8E" android:padding="10dp" />
+                <ImageView android:layout_width="60dp" android:layout_height="60dp" android:src="@android:drawable/ic_menu_week" android:background="@drawable/icon_agenda_bg" android:padding="10dp" android:elevation="3dp" app:tint="#FFFFFF" />
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Agenda" android:textColor="#FFFFFF" android:textSize="10sp"/>
             </LinearLayout>
 
@@ -238,7 +212,7 @@
                 android:layout_margin="10dp"
                 android:clickable="true"
                 android:focusable="true">
-                <ImageView android:layout_width="60dp" android:layout_height="60dp" android:src="@android:drawable/ic_menu_save" android:background="#263238" android:padding="10dp" />
+                <ImageView android:layout_width="60dp" android:layout_height="60dp" android:src="@android:drawable/ic_menu_save" android:background="@drawable/icon_banco_bg" android:padding="10dp" android:elevation="3dp" app:tint="#FFFFFF" />
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Banco" android:textColor="#FFFFFF" android:textSize="10sp"/>
             </LinearLayout>
 
@@ -250,7 +224,7 @@
                 android:layout_margin="10dp"
                 android:clickable="true"
                 android:focusable="true">
-                <ImageView android:layout_width="60dp" android:layout_height="60dp" android:src="@android:drawable/ic_menu_manage" android:background="#607D8B" android:padding="10dp" />
+                <ImageView android:layout_width="60dp" android:layout_height="60dp" android:src="@android:drawable/ic_menu_manage" android:background="@drawable/icon_ajustes_bg" android:padding="10dp" android:elevation="3dp" app:tint="#FFFFFF" />
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Ajustes" android:textColor="#FFFFFF" android:textSize="10sp"/>
             </LinearLayout>
         </GridLayout>
@@ -585,7 +559,8 @@
             android:layout_alignParentBottom="true"
             android:orientation="horizontal"
             android:padding="5dp"
-            android:background="#00000000">
+            android:background="#F0F0F0"
+            android:elevation="8dp">
 
             <EditText
                 android:id="@+id/et_mensagem"
@@ -596,6 +571,8 @@
                 android:padding="12dp"
                 android:background="@drawable/balao_user"
                 android:textColor="#000000"
+                android:maxLines="4"
+                android:inputType="textMultiLine"
                 android:layout_marginEnd="5dp" />
 
             <com.google.android.material.floatingactionbutton.FloatingActionButton

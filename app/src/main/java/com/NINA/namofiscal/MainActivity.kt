@@ -38,10 +38,8 @@ class MainActivity : AppCompatActivity() {
         override fun onReceive(context: Context?, intent: Intent?) {
             val texto = intent?.getStringExtra(NinaLegalService.EXTRA_TEXTO).orEmpty()
             val humor = intent?.getStringExtra(NinaLegalService.EXTRA_HUMOR)
-            val afeicao = intent?.getIntExtra(NinaLegalService.EXTRA_AFEICAO, 50) ?: 50
-            val ciume = intent?.getIntExtra(NinaLegalService.EXTRA_CIUME, 30) ?: 30
 
-            atualizarStatusNina(texto, humor, afeicao, ciume)
+            atualizarClimaDaNina(texto, humor)
             if (texto.isBlank()) return
 
             if (binding.chatContainer.visibility == View.VISIBLE) {
@@ -63,8 +61,7 @@ class MainActivity : AppCompatActivity() {
         setupChat()
         setupButtons()
         atualizarRelogioDaNina()
-        aplicarAtmosferaDaNina()
-        atualizarStatusNina("", NinaInventory.EMO_NEUTRA, 50, 30)
+        atualizarClimaDaNina("", NinaInventory.EMO_NEUTRA)
         checkPermissions()
     }
 
@@ -263,26 +260,8 @@ class MainActivity : AppCompatActivity() {
         binding.tvHomeClock.text = NinaTime.phoneClock(applicationContext)
     }
 
-    private fun atualizarStatusNina(texto: String, humor: String?, afeicao: Int, ciume: Int) {
+    private fun atualizarClimaDaNina(texto: String, humor: String?) {
         aplicarAtmosferaDaNina(texto, humor)
-        val saidaAtual = NinaSchedule.getActiveOuting(applicationContext)
-        val visualStatus = when {
-            saidaAtual?.companion == NinaOutingCompanion.AMIGAS ->
-                NinaVisualStatuses.get(NinaStatusKey.SAINDO_COM_AMIGAS)
-            saidaAtual?.companion == NinaOutingCompanion.AMIGO ->
-                NinaVisualStatuses.get(NinaStatusKey.SAINDO_COM_AMIGO)
-            else -> NinaVisualStatuses.fromHumor(humor, texto)
-        }
-        binding.imgNinaHome.setImageResource(visualStatus.imageRes)
-
-        val detalhe = when {
-            texto.contains("reunião", ignoreCase = true) -> "em reunião"
-            saidaAtual != null && texto.isBlank() -> "fora das ${saidaAtual.startHour}h às ${saidaAtual.endHour}h | afeição $afeicao | ciúme $ciume"
-            texto.isNotBlank() -> texto.take(42)
-            else -> "${visualStatus.detail} | afeição $afeicao | ciúme $ciume"
-        }
-
-        binding.tvNinaStatus.text = "Nina: ${visualStatus.label} - $detalhe"
     }
 
     private fun setupChat() {
@@ -374,7 +353,6 @@ class MainActivity : AppCompatActivity() {
         binding.headerAgenda.setBackgroundColor(atmosfera.header)
         binding.headerBank.setBackgroundColor(atmosfera.header)
         binding.btnEnviar.backgroundTintList = ColorStateList.valueOf(atmosfera.accent)
-        binding.tvNinaStatus.setTextColor(atmosfera.statusText)
         binding.tvAgendaSubtitle.setTextColor(atmosfera.subtleText)
         binding.tvBankSubtitle.setTextColor(atmosfera.subtleText)
     }
