@@ -47,11 +47,25 @@ object NinaSchedule {
     private const val FIELD_OUTING_COMPANION = "outing_companion"
     private const val FIELD_OUTING_START = "outing_start"
     private const val FIELD_OUTING_END = "outing_end"
+    private const val KEY_FALSE_ALARM_ABSENCE_DAY = "nina_false_alarm_absence_day"
 
     fun isDayOffToday(context: Context): Boolean {
         ensureNextWeekPlannedOnMonday(context)
         val today = NinaTime.now(context).get(Calendar.DAY_OF_WEEK)
         return today == Calendar.SUNDAY || today == getCurrentWeekAgenda(context).randomWeekdayOff
+    }
+
+    fun markFalseAlarmAbsenceToday(context: Context) {
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .edit()
+            .putString(KEY_FALSE_ALARM_ABSENCE_DAY, getDayKey(NinaTime.now(context)))
+            .apply()
+    }
+
+    fun isFalseAlarmAbsenceToday(context: Context): Boolean {
+        val todayKey = getDayKey(NinaTime.now(context))
+        return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .getString(KEY_FALSE_ALARM_ABSENCE_DAY, "") == todayKey
     }
 
     fun getDayOffLabel(context: Context): String {
@@ -117,6 +131,10 @@ object NinaSchedule {
     }
 
     fun getMessageContext(context: Context): String {
+        if (isFalseAlarmAbsenceToday(context)) {
+            return "Nina descobriu que uma emergência era mentira ou falso alarme. Ela está sentida, completamente apática e triste hoje, faltou ao serviço por causa do susto, mas ainda diz que está feliz por ele estar bem. Ela deve responder manhosa, baixa, insegura e sem energia, sem virar piada."
+        }
+
         val outing = getActiveOuting(context)
         return when (outing?.companion) {
             NinaOutingCompanion.AMIGO ->
@@ -149,10 +167,16 @@ object NinaSchedule {
         )
 
         return days.map { day ->
+            val summary = if (weekOffset == 0 && day == today && isFalseAlarmAbsenceToday(context)) {
+                "Avisou que hoje não consegue trabalhar. Ficou recolhida depois do susto."
+            } else {
+                publicSummaryForDay(day, agenda)
+            }
+
             NinaAgendaDay(
                 dayOfWeek = day,
                 title = dayNameShort(day),
-                summary = publicSummaryForDay(day, agenda),
+                summary = summary,
                 isToday = weekOffset == 0 && day == today
             )
         }
@@ -269,6 +293,10 @@ object NinaSchedule {
 
     private fun getWeekKey(now: Calendar): String {
         return "${now.get(Calendar.YEAR)}-${now.get(Calendar.WEEK_OF_YEAR)}"
+    }
+
+    private fun getDayKey(now: Calendar): String {
+        return "${now.get(Calendar.YEAR)}-${now.get(Calendar.DAY_OF_YEAR)}"
     }
 
     private fun keyFor(weekKey: String, field: String): String {

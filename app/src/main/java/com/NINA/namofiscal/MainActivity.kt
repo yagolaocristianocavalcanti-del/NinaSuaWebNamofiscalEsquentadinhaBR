@@ -5,6 +5,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.res.ColorStateList
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -62,6 +63,7 @@ class MainActivity : AppCompatActivity() {
         setupChat()
         setupButtons()
         atualizarRelogioDaNina()
+        aplicarAtmosferaDaNina()
         atualizarStatusNina("", NinaInventory.EMO_NEUTRA, 50, 30)
         checkPermissions()
     }
@@ -262,10 +264,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun atualizarStatusNina(texto: String, humor: String?, afeicao: Int, ciume: Int) {
+        aplicarAtmosferaDaNina(texto, humor)
         val saidaAtual = NinaSchedule.getActiveOuting(applicationContext)
-        val visualStatus = when (saidaAtual?.companion) {
-            NinaOutingCompanion.AMIGAS -> NinaVisualStatuses.get(NinaStatusKey.SAINDO_COM_AMIGAS)
-            NinaOutingCompanion.AMIGO -> NinaVisualStatuses.get(NinaStatusKey.SAINDO_COM_AMIGO)
+        val visualStatus = when {
+            saidaAtual?.companion == NinaOutingCompanion.AMIGAS ->
+                NinaVisualStatuses.get(NinaStatusKey.SAINDO_COM_AMIGAS)
+            saidaAtual?.companion == NinaOutingCompanion.AMIGO ->
+                NinaVisualStatuses.get(NinaStatusKey.SAINDO_COM_AMIGO)
             else -> NinaVisualStatuses.fromHumor(humor, texto)
         }
         binding.imgNinaHome.setImageResource(visualStatus.imageRes)
@@ -353,7 +358,25 @@ class MainActivity : AppCompatActivity() {
             mensagens.removeAt(indicePensando)
             chatAdapter.notifyItemRemoved(indicePensando)
             adicionarMensagemNina(resposta)
+            aplicarAtmosferaDaNina(resposta, NinaInventory.EMO_PENSANDO)
         }
+    }
+
+    private fun aplicarAtmosferaDaNina(texto: String = "", humor: String? = null) {
+        val atmosfera = NinaPhoneAtmospheres.from(applicationContext, humor, texto)
+        binding.root.setBackgroundColor(atmosfera.wallpaper)
+        binding.permissionContainer.setBackgroundColor(atmosfera.surface)
+        binding.ninaHomeContainer.setBackgroundColor(atmosfera.wallpaper)
+        binding.agendaContainer.setBackgroundColor(atmosfera.surface)
+        binding.bankContainer.setBackgroundColor(atmosfera.surface)
+        binding.chatContainer.setBackgroundColor(atmosfera.chatBackground)
+        binding.headerZap.setBackgroundColor(atmosfera.header)
+        binding.headerAgenda.setBackgroundColor(atmosfera.header)
+        binding.headerBank.setBackgroundColor(atmosfera.header)
+        binding.btnEnviar.backgroundTintList = ColorStateList.valueOf(atmosfera.accent)
+        binding.tvNinaStatus.setTextColor(atmosfera.statusText)
+        binding.tvAgendaSubtitle.setTextColor(atmosfera.subtleText)
+        binding.tvBankSubtitle.setTextColor(atmosfera.subtleText)
     }
 
     private fun adicionarMensagemNina(texto: String) {

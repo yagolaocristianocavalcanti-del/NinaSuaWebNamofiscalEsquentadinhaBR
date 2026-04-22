@@ -1,5 +1,7 @@
 package com.nina.namofiscal
 
+import android.content.Context
+import android.graphics.Color
 import androidx.annotation.DrawableRes
 
 enum class NinaStatusKey {
@@ -91,4 +93,104 @@ object NinaVisualStatuses {
     ): NinaVisualStatus {
         return NinaVisualStatus(key, label, detail, imageRes)
     }
+}
+
+data class NinaPhoneAtmosphere(
+    val wallpaper: Int,
+    val surface: Int,
+    val header: Int,
+    val accent: Int,
+    val statusText: Int,
+    val subtleText: Int,
+    val chatBackground: Int
+)
+
+object NinaPhoneAtmospheres {
+    fun from(context: Context, humor: String?, texto: String = ""): NinaPhoneAtmosphere {
+        return when {
+            NinaSchedule.isFalseAlarmAbsenceToday(context) -> recolhida
+            texto.contains("reunião", ignoreCase = true) -> concentrada
+            humor == NinaInventory.EMO_FURIOSA -> fervendo
+            humor == NinaInventory.EMO_BRAVA ||
+                humor == NinaInventory.EMO_IRRITADA ||
+                humor == NinaInventory.EMO_EXIGENTE -> quente
+            humor == NinaInventory.EMO_CARINHOSA ||
+                humor == NinaInventory.EMO_DERRETIDA -> doce
+            humor == NinaInventory.EMO_DORMINDO ||
+                humor == NinaInventory.LOOK_PIJAMA -> sonolenta
+            humor == NinaInventory.EMO_TRABALHO ||
+                humor == NinaInventory.LOOK_TRABALHO -> concentrada
+            else -> normal
+        }
+    }
+
+    private val normal = NinaPhoneAtmosphere(
+        wallpaper = Color.rgb(248, 187, 208),
+        surface = Color.rgb(255, 248, 251),
+        header = Color.rgb(194, 24, 91),
+        accent = Color.rgb(216, 27, 96),
+        statusText = Color.rgb(74, 18, 48),
+        subtleText = Color.rgb(255, 214, 232),
+        chatBackground = Color.rgb(238, 229, 233)
+    )
+
+    private val doce = NinaPhoneAtmosphere(
+        wallpaper = Color.rgb(255, 203, 224),
+        surface = Color.rgb(255, 249, 252),
+        header = Color.rgb(233, 67, 134),
+        accent = Color.rgb(255, 111, 174),
+        statusText = Color.rgb(90, 24, 58),
+        subtleText = Color.rgb(255, 230, 240),
+        chatBackground = Color.rgb(251, 232, 240)
+    )
+
+    private val quente = NinaPhoneAtmosphere(
+        wallpaper = Color.rgb(255, 198, 203),
+        surface = Color.rgb(255, 246, 247),
+        header = Color.rgb(174, 45, 71),
+        accent = Color.rgb(218, 65, 91),
+        statusText = Color.rgb(92, 20, 34),
+        subtleText = Color.rgb(255, 220, 225),
+        chatBackground = Color.rgb(247, 226, 226)
+    )
+
+    private val fervendo = NinaPhoneAtmosphere(
+        wallpaper = Color.rgb(255, 178, 181),
+        surface = Color.rgb(255, 242, 243),
+        header = Color.rgb(123, 24, 43),
+        accent = Color.rgb(198, 40, 40),
+        statusText = Color.rgb(76, 14, 24),
+        subtleText = Color.rgb(255, 211, 215),
+        chatBackground = Color.rgb(244, 220, 220)
+    )
+
+    private val recolhida = NinaPhoneAtmosphere(
+        wallpaper = Color.rgb(224, 227, 248),
+        surface = Color.rgb(248, 249, 255),
+        header = Color.rgb(105, 111, 166),
+        accent = Color.rgb(145, 154, 210),
+        statusText = Color.rgb(48, 52, 92),
+        subtleText = Color.rgb(225, 230, 255),
+        chatBackground = Color.rgb(236, 239, 250)
+    )
+
+    private val sonolenta = NinaPhoneAtmosphere(
+        wallpaper = Color.rgb(231, 219, 242),
+        surface = Color.rgb(251, 247, 255),
+        header = Color.rgb(93, 77, 126),
+        accent = Color.rgb(137, 111, 172),
+        statusText = Color.rgb(55, 43, 79),
+        subtleText = Color.rgb(229, 220, 245),
+        chatBackground = Color.rgb(237, 231, 246)
+    )
+
+    private val concentrada = NinaPhoneAtmosphere(
+        wallpaper = Color.rgb(244, 209, 225),
+        surface = Color.rgb(255, 248, 252),
+        header = Color.rgb(126, 73, 143),
+        accent = Color.rgb(151, 91, 165),
+        statusText = Color.rgb(66, 32, 76),
+        subtleText = Color.rgb(232, 211, 240),
+        chatBackground = Color.rgb(239, 232, 242)
+    )
 }

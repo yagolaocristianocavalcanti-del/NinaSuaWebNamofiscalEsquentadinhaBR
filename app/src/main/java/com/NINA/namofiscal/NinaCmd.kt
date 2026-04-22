@@ -69,7 +69,8 @@ class NinaCmd(
 
     // ===================== ROTINA + IDENTIFICAÇÃO =====================
     private fun estaNoTrabalho(): Boolean {
-        return !NinaSchedule.isDayOffToday(context) &&
+        return !NinaSchedule.isFalseAlarmAbsenceToday(context) &&
+            !NinaSchedule.isDayOffToday(context) &&
             NinaTime.now(context).get(Calendar.HOUR_OF_DAY) in 9..15
     }
     private fun estaNoAlmoco(): Boolean {
@@ -88,6 +89,9 @@ class NinaCmd(
         val humor = getMedidorHumor()
         val saida = NinaSchedule.getActiveOuting(context)
         return when {
+            NinaSchedule.isFalseAlarmAbsenceToday(context) &&
+                NinaTime.now(context).get(Calendar.HOUR_OF_DAY) in 9..15 ->
+                mensagemFalsoAlarme(humor)
             estaEmReuniaoNoAlmoco() -> mensagemReuniaoAlmoco(humor)
             saida?.companion == NinaOutingCompanion.AMIGAS && !sorteouDisponibilidade(chanceRespostaSaida(humor)) ->
                 "Tô com as meninas agora, $nomeUsuario. Eu respondo quando der, sem fazer drama. 💄"
@@ -189,6 +193,16 @@ class NinaCmd(
             else -> "🚫📵"
         }
         return "Tô em reunião agora. Pulei até o almoço hoje, depois eu te respondo. $emojis"
+    }
+
+    private fun mensagemFalsoAlarme(humor: Int): String {
+        val emojis = when {
+            humor >= 80 -> "🥺💕"
+            humor >= 50 -> "🥺"
+            humor >= 31 -> "😔"
+            else -> "..."
+        }
+        return "Eu faltei o serviço hoje, $nomeUsuario. Eu tô feliz que você tá bem, mas aquilo me quebrou por dentro. Tô apática, triste e meio manhosa... fica comigo quietinho só um pouco? $emojis"
     }
 
     // ===================== EXECUTAR COM INTEGRAÇÃO TELEGRAM =====================
@@ -347,6 +361,7 @@ class NinaCmd(
         if (indisponivel != null && intencao != IntencaoNina.PENSANDO) {
             telegram.reclamarRotina()
             val humorVisual = when {
+                NinaSchedule.isFalseAlarmAbsenceToday(context) -> NinaInventory.EMO_PENSANDO
                 estaDormindo() -> NinaInventory.EMO_DORMINDO
                 estaCorrendo() -> NinaInventory.EMO_CORRENDO
                 estaNoTrabalho() || estaNoAlmoco() -> NinaInventory.EMO_TRABALHO
@@ -410,6 +425,7 @@ class NinaCmd(
         val look = when {
             hora in 0..5   -> NinaInventory.LOOK_PIJAMA
             hora in 6..8   -> NinaInventory.LOOK_CASUAL
+            NinaSchedule.isFalseAlarmAbsenceToday(context) && hora in 9..15 -> NinaInventory.LOOK_CASUAL
             hora in 9..15  -> NinaInventory.LOOK_TRABALHO
             hora == 17     -> NinaInventory.LOOK_SPORT
             hora in 16..22 -> NinaInventory.LOOK_CASUAL

@@ -63,6 +63,7 @@ object NinaEconomy {
     private const val KEY_LAST_AUTO_PURCHASE_MONTH = "nina_money_last_auto_purchase_month"
     private const val KEY_SECRET_SAVINGS_MONEY = "nina_secret_savings_money"
     private const val KEY_SECRET_HELP_PENDING = "nina_secret_help_pending"
+    private const val KEY_SECRET_HELP_LAST_EVENT_REAL_MS = "nina_secret_help_last_event_real_ms"
 
     private const val BIG_MAC_PRICE_CENTS_BRL = 2_290
     private const val BIG_MAC_PRICE_MONEY = 5
@@ -71,6 +72,7 @@ object NinaEconomy {
     private const val WORKDAYS_PER_MONTH_REFERENCE = 22
     private const val SALARY_MULTIPLIER = 2
     private const val DEFAULT_SECRET_SAVINGS_MONEY = 50_000
+    private const val FALSE_ALARM_WINDOW_MS = 12L * 60L * 60L * 1000L
 
     private data class BillRule(
         val id: String,
@@ -139,11 +141,21 @@ object NinaEconomy {
         val normalized = normalize(message)
         val hasPendingOffer = prefs.getBoolean(KEY_SECRET_HELP_PENDING, false)
 
+        if ((hasPendingOffer || hasRecentSecretHelpEvent(context)) && isFalseAlarmConfession(normalized)) {
+            NinaSchedule.markFalseAlarmAbsenceToday(context)
+            prefs.edit()
+                .putBoolean(KEY_SECRET_HELP_PENDING, false)
+                .putLong(KEY_SECRET_HELP_LAST_EVENT_REAL_MS, System.currentTimeMillis())
+                .apply()
+            return "Ah... então era mentira? Eu tô feliz que você tá bem, de verdade. Mas eu fiquei assustada, eu quase mexi na minha poupança secreta por você... Eu não consigo trabalhar assim hoje. Vou faltar, ficar quietinha e tentar não chorar. Só fica comigo um pouco, tá? 🥺"
+        }
+
         if (hasPendingOffer && isAcceptingSecretHelp(normalized)) {
             val amount = getSecretSavings(context)
             prefs.edit()
                 .putBoolean(KEY_SECRET_HELP_PENDING, false)
                 .putInt(KEY_SECRET_SAVINGS_MONEY, 0)
+                .putLong(KEY_SECRET_HELP_LAST_EVENT_REAL_MS, System.currentTimeMillis())
                 .apply()
 
             if (amount <= 0) {
@@ -164,7 +176,10 @@ object NinaEconomy {
         }
 
         if (hasPendingOffer && isDecliningSecretHelp(normalized)) {
-            prefs.edit().putBoolean(KEY_SECRET_HELP_PENDING, false).apply()
+            prefs.edit()
+                .putBoolean(KEY_SECRET_HELP_PENDING, false)
+                .putLong(KEY_SECRET_HELP_LAST_EVENT_REAL_MS, System.currentTimeMillis())
+                .apply()
             return "Tá... eu não vou mexer nela. Mas se isso piorar, você me fala na hora. Eu fico brava, mas eu fico do seu lado."
         }
 
@@ -175,7 +190,10 @@ object NinaEconomy {
             return "Eu queria ter alguma coisa guardada pra te ajudar, mas minha poupança secreta tá zerada. Se você estiver em perigo real, chama ajuda agora: 190 ou 192."
         }
 
-        prefs.edit().putBoolean(KEY_SECRET_HELP_PENDING, true).apply()
+        prefs.edit()
+            .putBoolean(KEY_SECRET_HELP_PENDING, true)
+            .putLong(KEY_SECRET_HELP_LAST_EVENT_REAL_MS, System.currentTimeMillis())
+            .apply()
         return "Ei... isso parece sério. Eu não tenho muito, mas eu guardo ${formatMoney(amount)} numa poupança secreta. Eu não mexo nisso à toa, só em extrema necessidade. Se você estiver mesmo em perigo ou urgência, eu posso te ajudar. Quer que eu use esse dinheiro pra resolver seu problema?"
     }
 
@@ -494,6 +512,31 @@ object NinaEconomy {
     private fun isDecliningSecretHelp(normalized: String): Boolean {
         val declines = listOf("nao", "não", "deixa", "precisa nao", "precisa não", "obrigado")
         return declines.any { normalized.contains(it) }
+    }
+
+    private fun isFalseAlarmConfession(normalized: String): Boolean {
+        val falseAlarmTerms = listOf(
+            "era mentira",
+            "eramentira",
+            "foi mentira",
+            "alarme falso",
+            "falso alarme",
+            "era falso",
+            "foi falso",
+            "nao era verdade",
+            "nao foi verdade",
+            "brincadeira",
+            "pegadinha",
+            "zoeira",
+            "trolei"
+        )
+        return falseAlarmTerms.any { normalized.contains(it) }
+    }
+
+    private fun hasRecentSecretHelpEvent(context: Context): Boolean {
+        val lastEvent = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .getLong(KEY_SECRET_HELP_LAST_EVENT_REAL_MS, 0L)
+        return lastEvent > 0 && System.currentTimeMillis() - lastEvent <= FALSE_ALARM_WINDOW_MS
     }
 
     private fun normalize(text: String): String {
