@@ -130,6 +130,11 @@ object NinaSchedule {
         return getActiveOuting(context)?.companion == NinaOutingCompanion.AMIGO
     }
 
+    fun isSleepingNow(context: Context): Boolean {
+        val hour = NinaTime.now(context).get(Calendar.HOUR_OF_DAY)
+        return hour >= 23 || hour < 6
+    }
+
     fun getMessageContext(context: Context): String {
         if (isFalseAlarmAbsenceToday(context)) {
             return "Nina descobriu que uma emergência era mentira ou falso alarme. Ela está sentida, completamente apática e triste hoje, faltou ao serviço por causa do susto, mas ainda diz que está feliz por ele estar bem. Ela deve responder manhosa, baixa, insegura e sem energia, sem virar piada."

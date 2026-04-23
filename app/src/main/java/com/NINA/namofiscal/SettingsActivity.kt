@@ -39,7 +39,7 @@ class SettingsActivity : AppCompatActivity() {
 
         // Carregar valores atuais
         binding.etModelPath.setText(prefs.getString("model_path", "/sdcard/Download/gemma3.bin"))
-        binding.etUserName.setText(prefs.getString("nome_usuario", "yago"))
+        binding.etUserName.setText(prefs.getString("nome_usuario", "user"))
         binding.cbCiumesExtremo.isChecked = prefs.getBoolean("ciume_extremo", false)
         binding.cbDisponibilidadeTotal.isChecked = prefs.getBoolean("disponibilidade_total", false)
 

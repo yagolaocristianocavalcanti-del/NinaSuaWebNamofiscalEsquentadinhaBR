@@ -189,14 +189,14 @@ class NinaLegalService : Service() {
                         
                         val now = System.currentTimeMillis()
                         if (now - lastMoveTime > 2000) {
-                            val msg = listOf(
-                                "Ei! Tô aqui, não me move! 😡",
-                                "Cuidado onde pega, safado!",
-                                "Tá rápido demais! 😵‍💫",
-                                "Me solta, Yago!"
-                            ).random()
-                            mudarHumor(msg, NinaInventory.EMO_IRRITADA)
-                            lastMoveTime = now
+                        val msg = listOf(
+                            "Ei! Tô aqui, não me move! 😡",
+                            "Cuidado onde pega, safado!",
+                            "Tá rápido demais! 😵‍💫",
+                            "Me solta, ${nomeUsuario()}!"
+                        ).random()
+                        mudarHumor(msg, NinaInventory.EMO_IRRITADA)
+                        lastMoveTime = now
                         }
                         return true
                     }
@@ -223,8 +223,24 @@ class NinaLegalService : Service() {
             } else {
                 text = texto
                 visibility = View.VISIBLE
+
+                // Remove mensagens antigas para não acumular timers
+                handler.removeCallbacksAndMessages("HIDE_BUBBLE")
+                // Esconde o balãozinho depois de 6 segundos
+                handler.postAtTime({
+                    visibility = View.GONE
+                }, "HIDE_BUBBLE", android.os.SystemClock.uptimeMillis() + 6000)
             }
         }
+    }
+
+    private val handler = android.os.Handler(android.os.Looper.getMainLooper())
+
+    private fun nomeUsuario(): String {
+        return getSharedPreferences("NinaPrefs", Context.MODE_PRIVATE)
+            .getString("nome_usuario", "user")
+            ?.ifBlank { "user" }
+            ?: "user"
     }
 
     private fun removerOverlay() {

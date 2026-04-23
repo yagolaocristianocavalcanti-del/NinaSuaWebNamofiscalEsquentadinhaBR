@@ -240,6 +240,12 @@ object NinaEconomy {
         return realBigMacs.coerceAtLeast(0) * GAME_BIGS_PER_REAL_BIG_MAC
     }
 
+    fun storePriceLabel(money: Int): String {
+        val safeMoney = money.coerceAtLeast(0)
+        val bigMacs = safeMoney.toDouble() / BIG_MAC_PRICE_MONEY
+        return "${formatMoney(safeMoney)} | ${formatBigMacs(bigMacs)} Big Macs | ref. ${formatBRL(safeMoney * referenceCentsPerMoney())}"
+    }
+
     fun spend(context: Context, amountMoney: Int, reason: String): Boolean {
         if (amountMoney <= 0) return true
         ensureMonthlyCycle(context)
@@ -284,6 +290,14 @@ object NinaEconomy {
         val reais = cents / 100
         val centavos = cents % 100
         return String.format(Locale("pt", "BR"), "R$ %d,%02d", reais, centavos)
+    }
+
+    private fun formatBigMacs(bigMacs: Double): String {
+        return if (bigMacs % 1.0 == 0.0) {
+            bigMacs.toInt().toString()
+        } else {
+            String.format(Locale("pt", "BR"), "%.1f", bigMacs)
+        }
     }
 
     private fun baseSalaryBigMacsPerMonth(): Int {

@@ -51,7 +51,7 @@
         android:id="@+id/et_user_name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="yago"
+        android:hint="user"
         android:textColor="#311B92"
         android:textColorHint="#880E4F"
         android:layout_marginBottom="16dp" />

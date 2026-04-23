@@ -33,10 +33,14 @@
         android:id="@+id/tv_nina_bubble"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="@android:drawable/toast_frame"
-        android:padding="8dp"
+        android:background="@drawable/nina_comic_balloon"
+        android:padding="10dp"
         android:text="Tô de olho..."
-        android:textColor="@android:color/black"
+        android:textColor="#4A1230"
+        android:textSize="12sp"
+        android:textStyle="bold"
         android:visibility="gone"
-        android:layout_marginTop="4dp" />
+        android:layout_marginTop="4dp"
+        android:maxWidth="150dp"
+        android:elevation="4dp" />
 </LinearLayout>

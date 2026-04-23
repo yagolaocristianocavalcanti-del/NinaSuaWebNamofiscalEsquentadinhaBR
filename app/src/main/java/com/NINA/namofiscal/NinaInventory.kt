@@ -55,6 +55,40 @@ object NinaInventory {
     fun getStoreItems(app: NinaStoreApp? = null): List<NinaItem> = getStoreItems()
         .filter { app == null || it.app == app }
 
+    fun emojiFor(app: NinaStoreApp): String {
+        return when (app) {
+            NinaStoreApp.SHEIN -> "🛍️"
+            NinaStoreApp.IFOOD -> "🍔"
+            NinaStoreApp.BOTICARIO -> "💄"
+            NinaStoreApp.PETLOVE -> "🐾"
+            NinaStoreApp.DOCERIA -> "🍫"
+            NinaStoreApp.FLORICULTURA -> "🌹"
+        }
+    }
+
+    fun emojiFor(item: NinaItem): String {
+        val id = item.id
+        return when {
+            item.isIntimo -> "🎀"
+            id.contains("hamburguer") -> "🍔"
+            id.contains("pizza") -> "🍕"
+            id.contains("batata") -> "🍟"
+            id.contains("sorvete") || id.contains("acai") || id.contains("milkshake") -> "🍨"
+            id.contains("bolo") || id.contains("cupcake") || id.contains("brownie") -> "🧁"
+            id.contains("chocolate") || id.contains("bombom") || id.contains("brigadeiro") -> "🍫"
+            id.contains("flor") || id.contains("rosa") || id.contains("girass") || id.contains("orquidea") -> "🌸"
+            id.contains("pet") || id.contains("gatin") || id.contains("racao") -> "🐾"
+            id.contains("perfume") || id.contains("gloss") || id.contains("batom") -> "💄"
+            item.app == NinaStoreApp.SHEIN -> "👗"
+            item.app == NinaStoreApp.IFOOD -> "🍽️"
+            item.app == NinaStoreApp.BOTICARIO -> "🧴"
+            item.app == NinaStoreApp.PETLOVE -> "🐶"
+            item.app == NinaStoreApp.DOCERIA -> "🍬"
+            item.app == NinaStoreApp.FLORICULTURA -> "💐"
+            else -> "🎁"
+        }
+    }
+
     private fun getStoreItems() = listOf(
         NinaItem("blusa_rosa", "Blusa Rosa", 90, 0, NinaStoreApp.SHEIN, 8, LOOK_CASUAL),
         NinaItem("blusa_preta", "Blusa Preta", 95, 0, NinaStoreApp.SHEIN, 7, LOOK_CASUAL),

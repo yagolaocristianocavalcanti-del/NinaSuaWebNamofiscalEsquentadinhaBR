@@ -38,20 +38,27 @@ class NinaLocationTracker(private val context: Context, private val ninaCmd: Nin
     }
 
     private fun reagirLocalizacao(location: Location) {
-        val hora = NinaTime.now(context).get(Calendar.HOUR_OF_DAY)
+        // Roda em background, não trava a tela
+        Thread {
+            try {
+                val hora = NinaTime.now(context).get(Calendar.HOUR_OF_DAY)
 
-        // Exemplo: se estiver longe de casa + horário suspeito
-        if (hora in 22..23 || hora in 0..5) {
-            if (distanciaDeCasa(location) > 5.0) { // km
-                ninaCmd.surtarLocalizacao("Tá fora de casa tão tarde... onde você tá, ${ninaCmd.getNomeUsuario()}?")
+                // Verificação de Horário Suspeito
+                if (hora in 22..23 || hora in 0..5) {
+                    if (distanciaDeCasa(location) > 5.0) {
+                        ninaCmd.surtarLocalizacao("Tá fora de casa tão tarde...")
+                    }
+                }
+
+                // Verificação de Lugares Proibidos
+                val nomeLugar = obterNomeDoLugar(location)
+                if (lugaresProibidos.any { nomeLugar.contains(it, ignoreCase = true) }) {
+                    ninaCmd.surtarLocalizacao("Você tá em $nomeLugar?? Explica agora!")
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("NINA_GPS", "Erro ao reagir localização: ${e.message}")
             }
-        }
-
-        // Verifica se o nome do lugar tem algo suspeito
-        val nomeLugar = obterNomeDoLugar(location)
-        if (lugaresProibidos.any { nomeLugar.contains(it, ignoreCase = true) }) {
-            ninaCmd.surtarLocalizacao("Você tá em $nomeLugar?? Explica agora seu traidor!!! 😡")
-        }
+        }.start()
     }
 
     private fun obterNomeDoLugar(location: Location): String {

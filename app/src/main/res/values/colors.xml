@@ -7,4 +7,11 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <!-- Cores da Nina -->
+    <color name="nina_pink_light">#FFD1DC</color>
+    <color name="nina_wine">#4A1230</color>
+    <color name="nina_wine_dark">#2D0B1D</color>
+    <color name="nina_neon_pink">#E91E8C</color>
+    <color name="nina_dark_bg">#120309</color>
 </resources>

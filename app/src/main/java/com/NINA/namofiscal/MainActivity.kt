@@ -1,5 +1,6 @@
 package com.nina.namofiscal
 
+import android.app.AlertDialog
 import android.app.usage.UsageStatsManager
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -44,9 +45,8 @@ class MainActivity : AppCompatActivity() {
 
             if (binding.chatContainer.visibility == View.VISIBLE) {
                 adicionarMensagemNina(texto)
-            } else {
-                Toast.makeText(this@MainActivity, "Nina: $texto", Toast.LENGTH_LONG).show()
             }
+            // Removido o Toast para que a fala apareça apenas no balão flutuante (overlay)
         }
     }
 
@@ -83,22 +83,26 @@ class MainActivity : AppCompatActivity() {
     private fun setupButtons() {
         // Permissão de Sobreposição
         binding.btnPermissaoOverlay.setOnClickListener {
+            aplicarEfeitoPulse(it)
             startActivity(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:$packageName")))
         }
 
         // Permissão de Uso
         binding.btnPermissaoUso.setOnClickListener {
+            aplicarEfeitoPulse(it)
             startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
         }
 
         // Botão "TUDO PRONTO" (Ativa a Home)
         binding.btnAtivarNina.setOnClickListener {
+            aplicarEfeitoPulse(it)
             mostrarHomeNina()
             iniciarServicoNina()
         }
 
         // Abrir o WhatsApp da Nina (dentro da Home dela)
         binding.btnAbrirZap.setOnClickListener {
+            aplicarEfeitoPulse(it)
             binding.ninaHomeContainer.visibility = View.GONE
             binding.agendaContainer.visibility = View.GONE
             binding.bankContainer.visibility = View.GONE
@@ -106,66 +110,114 @@ class MainActivity : AppCompatActivity() {
         }
 
         binding.btnHomeSettings.setOnClickListener {
+            aplicarEfeitoPulse(it)
             startActivity(Intent(this, SettingsActivity::class.java))
         }
 
         binding.btnAbrirShein.setOnClickListener {
+            aplicarEfeitoPulse(it)
             mostrarAppDaNina(NinaStoreApp.SHEIN)
         }
 
         binding.btnAbrirIfood.setOnClickListener {
+            aplicarEfeitoPulse(it)
             mostrarAppDaNina(NinaStoreApp.IFOOD)
         }
 
         binding.btnAbrirBoticario.setOnClickListener {
+            aplicarEfeitoPulse(it)
             mostrarAppDaNina(NinaStoreApp.BOTICARIO)
         }
 
         binding.btnAbrirPetlove.setOnClickListener {
+            aplicarEfeitoPulse(it)
             mostrarAppDaNina(NinaStoreApp.PETLOVE)
         }
 
         binding.btnAbrirDoceria.setOnClickListener {
+            aplicarEfeitoPulse(it)
             mostrarAppDaNina(NinaStoreApp.DOCERIA)
         }
 
         binding.btnAbrirFlores.setOnClickListener {
+            aplicarEfeitoPulse(it)
             mostrarAppDaNina(NinaStoreApp.FLORICULTURA)
         }
 
         binding.btnAbrirEntregaIfood.setOnClickListener {
+            aplicarEfeitoPulse(it)
             mostrarMiniGameEmBreve()
         }
 
         binding.btnAbrirAgenda.setOnClickListener {
+            aplicarEfeitoPulse(it)
             mostrarAgendaDaNina()
         }
 
         binding.btnAbrirBanco.setOnClickListener {
+            aplicarEfeitoPulse(it)
             mostrarBancoDaNina()
         }
 
         binding.btnFecharAgenda.setOnClickListener {
+            aplicarEfeitoPulse(it)
             mostrarHomeNina()
         }
 
         binding.btnFecharBanco.setOnClickListener {
+            aplicarEfeitoPulse(it)
             mostrarHomeNina()
         }
 
         // Botão de Configurações (Engrenagem no Chat)
         binding.btnSettings.setOnClickListener {
+            aplicarEfeitoPulse(it)
             startActivity(Intent(this, SettingsActivity::class.java))
         }
     }
 
     private fun mostrarAppDaNina(app: NinaStoreApp) {
-        val nome = getSharedPreferences("NinaPrefs", Context.MODE_PRIVATE).getString("nome_usuario", "yago")
+        processarCorreioDaNina()
+        NinaEconomy.ensureMonthlyCycle(applicationContext)
         val itens = NinaInventory.getStoreItems(app)
-            .joinToString(", ") { it.nome }
+        val labels = itens.map { item ->
+            buildString {
+                append("${NinaInventory.emojiFor(item)} ${item.nome}\n")
+                append(NinaEconomy.storePriceLabel(item.preco))
+                if (item.intimidadeMinima > 0) {
+                    append("\nAfinidade minima: ${item.intimidadeMinima}")
+                }
+                if (item.isIntimo) {
+                    append(" | intimo")
+                }
+            }
+        }.toTypedArray()
+
+        AlertDialog.Builder(this)
+            .setTitle("${NinaInventory.emojiFor(app)} ${app.titulo}")
+            .setMessage(
+                "${app.descricao}\n\n" +
+                    "Toque em um item para comprar e mandar ao correio da Nina.\n" +
+                    "${NinaMail.pendingSummary(applicationContext)}"
+            )
+            .setItems(labels) { _, index ->
+                comprarItemDaLoja(itens[index])
+            }
+            .setNegativeButton("Fechar", null)
+            .show()
+    }
+
+    private fun comprarItemDaLoja(item: NinaItem) {
+        val service = NinaLegalService.getInstance()
+        if (service == null) {
+            iniciarServicoNina()
+            Toast.makeText(this, "Ative a Nina primeiro pra mandar pacote ao correio dela.", Toast.LENGTH_LONG).show()
+            return
+        }
+        NinaCmd(service, applicationContext).comprarItem(item.id)
         Toast.makeText(
             this,
-            "Nina abriu ${app.titulo}: $itens. Vai mimar ou vai so olhar, $nome?",
+            "${NinaInventory.emojiFor(item)} ${item.nome} enviado ao correio da Nina.",
             Toast.LENGTH_LONG
         ).show()
     }
@@ -387,6 +439,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun mostrarHomeNina() {
+        processarCorreioDaNina()
         atualizarRelogioDaNina()
         binding.permissionContainer.visibility = View.GONE
         binding.ninaHomeContainer.visibility = View.VISIBLE
@@ -419,8 +472,23 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         if (::binding.isInitialized) {
             atualizarRelogioDaNina()
+            aplicarAtmosferaDaNina()
+            processarCorreioDaNina()
         }
         checkPermissions()
+    }
+
+    private fun processarCorreioDaNina() {
+        val service = NinaLegalService.getInstance() ?: return
+        val entregas = NinaCmd(service, applicationContext).processarCorreioDaNina()
+        if (binding.chatContainer.visibility == View.VISIBLE) {
+            entregas.forEach { adicionarMensagemNina(it.message) }
+        }
+    }
+
+    private fun aplicarEfeitoPulse(view: View) {
+        val animation = android.view.animation.AnimationUtils.loadAnimation(this, R.anim.icon_pulse)
+        view.startAnimation(animation)
     }
 
     override fun onStart() {

@@ -56,6 +56,7 @@ object NinaPhoneAtmospheres {
                 humor == NinaInventory.EMO_EXIGENTE -> quente
             humor == NinaInventory.EMO_CARINHOSA ||
                 humor == NinaInventory.EMO_DERRETIDA -> doce
+            NinaSchedule.isSleepingNow(context) -> sonolenta
             humor == NinaInventory.EMO_DORMINDO ||
                 humor == NinaInventory.LOOK_PIJAMA -> sonolenta
             humor == NinaInventory.EMO_TRABALHO ||
@@ -110,12 +111,12 @@ object NinaPhoneAtmospheres {
     )
 
     private val sonolenta = NinaPhoneAtmosphere(
-        wallpaper = Color.rgb(231, 219, 242),
-        surface = Color.rgb(251, 247, 255),
-        header = Color.rgb(93, 77, 126),
-        accent = Color.rgb(137, 111, 172),
-        subtleText = Color.rgb(229, 220, 245),
-        chatBackground = Color.rgb(237, 231, 246)
+        wallpaper = Color.rgb(18, 3, 9),
+        surface = Color.rgb(36, 13, 28),
+        header = Color.rgb(45, 11, 29),
+        accent = Color.rgb(126, 73, 143),
+        subtleText = Color.rgb(214, 181, 219),
+        chatBackground = Color.rgb(25, 14, 24)
     )
 
     private val concentrada = NinaPhoneAtmosphere(

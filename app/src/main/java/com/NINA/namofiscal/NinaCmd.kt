@@ -436,41 +436,30 @@ class NinaCmd(
 
     fun comprarItem(idItem: String) {
         val item = NinaInventory.getStoreItems().find { it.id == idItem } ?: return
-        val humor = getMedidorHumor()
-        val tentativaIntimaSemAfinidade = item.isIntimo && humor < 85
+        val delivery = NinaMail.enqueuePurchase(context, item)
+        service.mudarHumor(
+            "${NinaInventory.emojiFor(item)} ${item.nome} foi pro meu correio. $delivery Eu só vou abrir quando chegar do trabalho, viu?",
+            NinaInventory.EMO_PENSANDO
+        )
+    }
 
-        if (humor < item.intimidadeMinima || tentativaIntimaSemAfinidade) {
-            val motivo = if (tentativaIntimaSemAfinidade) {
-                "Tentou comprar roupa íntima sem intimidade muito alta (${humor}/85)."
-            } else {
-                "Intimidade insuficiente (${humor}/${item.intimidadeMinima})."
+    fun processarCorreioDaNina(): List<NinaMailDelivery> {
+        val entregas = NinaMail.deliverReady(context, getMedidorHumor(), nomeUsuario)
+        entregas.forEach { entrega ->
+            when {
+                entrega.carinhoDelta > 0 -> service.subirCarinho(entrega.carinhoDelta)
+                entrega.carinhoDelta < 0 -> service.diminuirCarinho(-entrega.carinhoDelta)
             }
-            NinaGiftHistory.registrar(
-                context = context,
-                item = item,
-                decision = GiftDecision.REJEITADO,
-                reason = motivo,
-                affectionAtMoment = humor
-            )
-            if (tentativaIntimaSemAfinidade) {
-                service.diminuirCarinho(15)
-                service.subirCiume(25)
+            if (entrega.ciumeDelta > 0) {
+                service.subirCiume(entrega.ciumeDelta)
             }
-            service.mudarHumor("VOCÊ TÁ MALUCO, $nomeUsuario? ${item.nome} agora não. Nem temos essa intimidade toda! 😳😤", NinaInventory.EMO_BRAVA)
-            adicionarVacilo("Tentou comprar ${item.nome} sem intimidade suficiente.")
-        } else {
-            NinaGiftHistory.registrar(
-                context = context,
-                item = item,
-                decision = GiftDecision.ACEITO,
-                reason = "A Nina aceitou o presente.",
-                affectionAtMoment = humor
-            )
-            val resposta = "Obrigada pelo presente, $nomeUsuario! ${item.nome} é lindo! Eu vi lá no ${item.app.titulo} 😍💕"
-            service.mudarHumor(resposta, item.lookLiberado ?: NinaInventory.EMO_CARINHOSA)
-            service.subirCarinho(item.carinhoBonus)
-            telegram.mensagemCarinhosa("Ganhei um presente: ${item.nome} 💕")
+            entrega.vacilo?.let { adicionarVacilo(it) }
+            service.mudarHumor(entrega.message, entrega.humor)
+            if (entrega.accepted) {
+                telegram.mensagemCarinhosa("Abri um pacote: ${entrega.item.nome} 💕")
+            }
         }
+        return entregas
     }
 
     fun limparBarra() {
