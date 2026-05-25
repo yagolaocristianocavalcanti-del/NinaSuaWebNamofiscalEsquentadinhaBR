@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:background="@color/background_primary">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/emergency_button"
+        android:textColor="@color/carmine_red"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:layout_gravity="center"
+        android:layout_marginBottom="24dp"/>
+
+    <EditText
+        android:id="@+id/et_justification"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/emergency_justification"
+        android:textColor="@color/neon_green"
+        android:textColorHint="#4439FF14"
+        android:backgroundTint="@color/neon_green"
+        android:inputType="textMultiLine"
+        android:minLines="3"
+        android:layout_marginBottom="24dp"/>
+
+    <Button
+        android:id="@+id/btn_send_alert"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/send_alert"
+        android:backgroundTint="@color/carmine_red"
+        android:textColor="@color/white" />
+
+</LinearLayout>
