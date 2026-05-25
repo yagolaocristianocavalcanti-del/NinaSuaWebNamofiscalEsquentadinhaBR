@@ -1,4 +1,37 @@
 <resources>
-    <string name="app_name">Nina – Sua Web Namofiscal Esquentadinha BR</string>
-    <string name="accessibility_description">Serviço de fiscalização da Nina para garantir que você se comporte.</string>
+    <string name="app_name">Gestão de Garagens</string>
+    <string name="accessibility_description">Serviço de automação e fiscalização de estacionamento.</string>
+
+    <!-- Labels de Autenticação -->
+    <string name="license_key_hint">XXXX-XXXX-XXXX-XXXX-XXXX-XXXX</string>
+    <string name="validate_license">Validar Licença</string>
+    <string name="offline_fallback">Entrar em Modo Contingência</string>
+
+    <!-- Labels de Operação -->
+    <string name="register_entry">Registrar Entrada</string>
+    <string name="validate_exit">Validar Saída</string>
+    <string name="garage_button">Garagem</string>
+    <string name="emergency_button">EMERGÊNCIA</string>
+    <string name="ptt_label">Rádio PTT</string>
+
+    <!-- Veículo -->
+    <string name="vehicle_plate">Placa</string>
+    <string name="vehicle_color">Cor</string>
+    <string name="vehicle_brand">Marca</string>
+    <string name="vehicle_model">Modelo</string>
+    <string name="vehicle_prisma">Prisma</string>
+    <string name="save_vehicle">Salvar Veículo</string>
+
+    <!-- Alertas -->
+    <string name="emergency_justification">Justificativa de Emergência</string>
+    <string name="send_alert">Disparar Alerta</string>
+
+    <string name="invalid_license">Licença Inválida</string>
+    <string name="contingency_activated">Modo Contingência Ativado</string>
+    <string name="opening_patio">Abrindo Pátio...</string>
+    <string name="emergency_alert_sent">🚨 ALERTA ENVIADO PARA O FISCAL! 🚨</string>
+    <string name="justification_required">Justificativa obrigatória!</string>
+    <string name="ptt_blocked">Rádio bloqueado durante manobra!</string>
+    <string name="ptt_open">Canal Aberto - Pressione para Falar</string>
+    <string name="ptt_standby">Rádio em Standby</string>
 </resources>

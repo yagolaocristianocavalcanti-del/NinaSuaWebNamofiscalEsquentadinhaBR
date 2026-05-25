@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="24dp"
+    android:background="@color/background_primary">
+
+    <ImageView
+        android:layout_width="120dp"
+        android:layout_height="120dp"
+        android:src="@mipmap/ic_launcher"
+        android:layout_marginBottom="32dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="ATIVAR LICENÇA"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:textColor="@color/neon_green"
+        android:layout_marginBottom="16dp"/>
+
+    <EditText
+        android:id="@+id/et_license_key"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/license_key_hint"
+        android:textColor="@color/neon_green"
+        android:textColorHint="#4439FF14"
+        android:backgroundTint="@color/neon_green"
+        android:textAlignment="center"
+        android:inputType="textCapCharacters"
+        android:maxLength="29"
+        android:layout_marginBottom="8dp"/>
+
+    <Spinner
+        android:id="@+id/sp_role"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:backgroundTint="@color/neon_green"
+        android:layout_marginBottom="24dp" />
+
+    <Button
+        android:id="@+id/btn_validate"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/validate_license"
+        android:backgroundTint="@color/neon_green"
+        android:textColor="@color/carbon_black"/>
+
+    <TextView
+        android:id="@+id/btn_fallback"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/offline_fallback"
+        android:textColor="@color/white"
+        android:layout_marginTop="32dp"
+        android:clickable="true"
+        android:focusable="true"/>
+
+</LinearLayout>
